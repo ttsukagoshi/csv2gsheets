@@ -1,0 +1,7 @@
+# Python venv
+.env/
+
+# Google Drive API
+.credentials.json
+.token.json
+
