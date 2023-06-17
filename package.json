@@ -3,6 +3,9 @@
   "version": "0.1.0",
   "description": "CLI tool to convert Excel files in a designated Google Drive folder into Google Sheets files.",
   "type": "module",
+  "engines": {
+    "node": ">=16.0.0"
+  },
   "exports": "./build/src/index.js",
   "main": "build/src/index.js",
   "bin": {
