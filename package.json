@@ -1,7 +1,7 @@
 {
   "name": "xlsx2gsheets",
   "version": "0.1.0",
-  "description": "Convert Excel files in a designated Google Drive folder into Google Sheets files.",
+  "description": "CLI tool to convert Excel files in a designated Google Drive folder into Google Sheets files.",
   "type": "module",
   "exports": "./build/src/index.js",
   "main": "build/src/index.js",
