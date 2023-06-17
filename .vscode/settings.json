@@ -1,7 +1,9 @@
 {
   "editor.defaultFormatter": "esbenp.prettier-vscode",
   "editor.formatOnSave": true,
+  "editor.tabSize": 2,
+  "files.eol": "\n",
   "[python]": {
     "editor.defaultFormatter": "ms-python.black-formatter"
-  }
+  },
 }

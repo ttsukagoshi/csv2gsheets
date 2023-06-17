@@ -1,6 +1,12 @@
 # Python venv
 .env/
 
+# Node.js
+node_modules/
+
+# Jest
+coverage/
+
 # Google Drive API
 .credentials.json
 .token.json

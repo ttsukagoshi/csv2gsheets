@@ -1,0 +1,52 @@
+{
+  "name": "xlsx2gsheets",
+  "version": "0.1.0",
+  "description": "CLI tool to convert Excel files in a designated Google Drive folder into Google Sheets files.",
+  "type": "module",
+  "exports": "./build/src/index.js",
+  "main": "build/src/index.js",
+  "bin": {
+    "xlsx2gsheets": "build/src/index.js"
+  },
+  "files": [
+    "docs",
+    "build/src"
+  ],
+  "scripts": {
+    "build": "npx tsc",
+    "test": "jest"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ttsukagoshi/xlsx2gsheets.git"
+  },
+  "keywords": [
+    "google-sheets",
+    "excel",
+    "google-drive-api",
+    "cli"
+  ],
+  "author": "ttsukagoshi",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/ttsukagoshi/xlsx2gsheets/issues"
+  },
+  "homepage": "https://github.com/ttsukagoshi/xlsx2gsheets#readme",
+  "devDependencies": {
+    "@types/jest": "^29.5.1",
+    "@typescript-eslint/eslint-plugin": "^5.59.2",
+    "@typescript-eslint/parser": "^5.59.2",
+    "eslint": "^8.41.0",
+    "eslint-config-prettier": "^8.8.0",
+    "eslint-plugin-prettier": "^4.2.1",
+    "jest": "^29.5.0",
+    "prettier": "^2.8.8",
+    "ts-jest": "^29.1.0",
+    "ts-node": "^10.9.1",
+    "typescript": "^5.0.3"
+  },
+  "dependencies": {
+    "commander": "^9.5.0",
+    "ora": "^6.3.0"
+  }
+}
