@@ -8,7 +8,13 @@ export default {
   clearMocks: true,
   // Indicates whether the coverage information should be collected while executing the test
   collectCoverage: true,
-  collectCoverageFrom: ['<rootDir>/src/**/*.ts'],
+  collectCoverageFrom: [
+    '<rootDir>/src/**/*.ts',
+    '!<rootDir>/src/**/index.ts',
+    '!<rootDir>/src/**/constants.ts',
+    '!<rootDir>/src/**/utils.ts',
+    '!<rootDir>/src/**/x2s-error.ts',
+  ],
   // The directory where Jest should output its coverage files
   coverageDirectory: 'coverage',
   // Indicates which provider should be used to instrument code for coverage
@@ -23,7 +29,7 @@ export default {
   testEnvironment: 'node',
   testMatch: ['**/tests/**/*.test.ts'], // The glob patterns Jest uses to detect test files
   transform: {
-    '^.+\\.m?[tj]sx?$': ['babel-jest'],
+    '^.+\\.m?[tj]sx?$': ['ts-jest'],
   },
   // transformIgnorePatterns: [
   // '<rootDir>/node_modules/(?!(cli-cursor|is-interactive|is-unicode-supported|log-symbols|ora|read-pkg|read-pkg-up|restore-cursor)/)',
