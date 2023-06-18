@@ -3,6 +3,7 @@
 
 # Node.js
 node_modules/
+build/
 
 # Jest
 coverage/
