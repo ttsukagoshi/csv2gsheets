@@ -4,12 +4,12 @@ import loudRejection from 'loud-rejection';
 import { program } from 'commander';
 
 // Local imports
-import { X2sError } from './x2s-error';
-import { PACKAGE_JSON } from './constants';
-import { spinner, stopSpinner } from './utils';
+import { X2sError } from './x2s-error.js';
+import { PACKAGE_JSON } from './constants.js';
+import { spinner, stopSpinner } from './utils.js';
 
 // Commands
-import convert from './commands/convert';
+import convert from './commands/convert.js';
 
 // Make unhandled promise rejections fail loudly instead of the default silent fail
 loudRejection();
