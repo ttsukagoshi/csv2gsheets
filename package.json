@@ -9,7 +9,8 @@
   "exports": "./build/src/index.js",
   "main": "build/src/index.js",
   "bin": {
-    "x2s": "build/src/index.js"
+    "x2s": "build/src/index.js",
+    "xlsx2gsheets": "build/src/index.js"
   },
   "files": [
     "docs",
