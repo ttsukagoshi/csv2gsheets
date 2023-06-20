@@ -27,7 +27,7 @@ export default {
   // },
   preset: 'ts-jest/presets/default-esm', // A preset that is used as a base for Jest's configuration
   testEnvironment: 'node',
-  testMatch: ['**/tests/**/*.test.ts'], // The glob patterns Jest uses to detect test files
+  testMatch: ['**/test/**/*.test.ts'], // The glob patterns Jest uses to detect test files
   transform: {
     '^.+\\.m?[tj]sx?$': ['ts-jest'],
   },
