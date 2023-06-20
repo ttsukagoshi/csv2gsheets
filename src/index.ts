@@ -24,9 +24,11 @@ program.version(
   'Output the current version'
 );
 program
-  .name(`${PACKAGE_JSON?.name || 'xlsx2sheets'}, aka x2s`)
+  .name(`${PACKAGE_JSON?.name || 'xlsx2sheets'}`)
   .usage('<command> [options]')
-  .description(`${PACKAGE_JSON?.name} - ${PACKAGE_JSON?.description}`);
+  .description(
+    `${PACKAGE_JSON?.name} - ${PACKAGE_JSON?.description}\nUse \`x2s\` for shorthand.`
+  );
 
 // Convert command
 program
