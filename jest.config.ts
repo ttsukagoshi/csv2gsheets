@@ -4,6 +4,8 @@
  */
 
 export default {
+  // preset: 'ts-jest/presets/default-esm', // A preset that is used as a base for Jest's configuration
+
   // Automatically clear mock calls, instances, contexts and results before every test
   clearMocks: true,
   // Indicates whether the coverage information should be collected while executing the test
@@ -25,11 +27,18 @@ export default {
   // '^(\\.{1,2}/.*)\\.js$': '$1',
   // '^#(.*)$': './vendor/$1',
   // },
-  preset: 'ts-jest/presets/default-esm', // A preset that is used as a base for Jest's configuration
   testEnvironment: 'node',
   testMatch: ['**/test/**/*.test.ts'], // The glob patterns Jest uses to detect test files
   transform: {
-    '^.+\\.m?[tj]sx?$': ['ts-jest'],
+    '^.+\\.m?[tj]sx?$': [
+      'ts-jest',
+      {
+        tsconfig: {
+          target: 'es2022',
+          module: 'es2022',
+        },
+      },
+    ],
   },
   // transformIgnorePatterns: [
   // '<rootDir>/node_modules/(?!(cli-cursor|is-interactive|is-unicode-supported|log-symbols|ora|read-pkg|read-pkg-up|restore-cursor)/)',
