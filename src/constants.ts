@@ -1,10 +1,7 @@
-import { dirname } from 'path';
-import { fileURLToPath } from 'url';
-import { readPackageUpSync } from 'read-pkg-up';
+// File Names
+export const CREDENTIALS_FILE_NAME = 'x2s.creds.json';
+export const TOKEN_FILE_NAME = '.x2src.json';
+export const CONFIG_FILE_NAME = 'x2s.config.json';
 
-/**
- * Package Info
- */
-export const __dirname: string = dirname(fileURLToPath(import.meta.url));
-export const PACKAGE_JSON =
-  readPackageUpSync({ cwd: __dirname })?.packageJson || undefined;
+// Home Directory
+export const HOME_DIR = process.env.HOME || process.env.USERPROFILE || '';
