@@ -4,9 +4,9 @@ import loudRejection from 'loud-rejection';
 import { program } from 'commander';
 
 // Local imports
-import { X2sError } from './x2s-error.js';
-import { PACKAGE_JSON } from './constants.js';
-import { spinner, stopSpinner } from './utils.js';
+import { X2sError } from './x2s-error';
+import { PACKAGE_JSON } from './package';
+import { spinner, stopSpinner } from './utils';
 
 // Commands
 import convert from './commands/convert.js';
