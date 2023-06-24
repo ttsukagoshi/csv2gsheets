@@ -1,5 +1,5 @@
 # Python venv
-.env/
+# .env/
 
 # Node.js
 node_modules/
@@ -9,6 +9,8 @@ build/
 coverage/
 
 # Google Drive API
-.credentials.json
-.token.json
+# .credentials.json
+# .token.json
 
+# System Files
+.DS_Store
