@@ -5,11 +5,11 @@ import { program } from 'commander';
 
 // Local imports
 import { X2sError } from './x2s-error';
-import { PACKAGE_JSON } from './constants';
+import { PACKAGE_JSON } from './package';
 import { spinner, stopSpinner } from './utils';
 
 // Commands
-import convert from './commands/convert';
+import convert from './commands/convert.js';
 
 // Make unhandled promise rejections fail loudly instead of the default silent fail
 loudRejection();
@@ -24,9 +24,11 @@ program.version(
   'Output the current version'
 );
 program
-  .name(`${PACKAGE_JSON?.name || 'xlsx2sheets'}, aka x2s`)
+  .name(`${PACKAGE_JSON?.name || 'xlsx2sheets'}`)
   .usage('<command> [options]')
-  .description(`${PACKAGE_JSON?.name} - ${PACKAGE_JSON?.description}`);
+  .description(
+    `${PACKAGE_JSON?.name} - ${PACKAGE_JSON?.description}\nUse \`x2s\` for shorthand.`
+  );
 
 // Convert command
 program
