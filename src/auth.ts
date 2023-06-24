@@ -17,7 +17,7 @@ export const TOKEN_PATH = path.join(HOME_DIR, TOKEN_FILE_NAME);
  * Read previously authorized tokens from the save file.
  * @returns The OAuth2Client object or null if no saved token exists.
  */
-async function loadSavedToken(): Promise<OAuth2Client | null> {
+export async function loadSavedToken(): Promise<OAuth2Client | null> {
   try {
     if (fs.existsSync(TOKEN_PATH)) {
       const token = await fs.promises.readFile(TOKEN_PATH, 'utf8');
@@ -34,7 +34,7 @@ async function loadSavedToken(): Promise<OAuth2Client | null> {
  * Serialize credentials to a file compatible with GoogleAuth.fromJSON.
  * @param client The OAuth2Client object to serialize.
  */
-async function saveCredentials(client: OAuth2Client): Promise<void> {
+async function saveToken(client: OAuth2Client): Promise<void> {
   const credentials = await fs.promises.readFile(CREDENTIALS_PATH, 'utf8');
   const parsedCredentials = JSON.parse(credentials);
   const key = parsedCredentials.installed || parsedCredentials.web;
@@ -58,7 +58,7 @@ export default async function authorize(): Promise<OAuth2Client> {
       scopes: SCOPES,
     });
     if (client?.credentials) {
-      await saveCredentials(client);
+      await saveToken(client);
     }
     return client;
   } else {
