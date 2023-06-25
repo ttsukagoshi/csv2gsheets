@@ -37,6 +37,10 @@ program
 program
   .command('init')
   .description('Create a configuration file in the current directory')
+  .option(
+    '-l, --login',
+    'Login to the Google service before creating the file. Same as `x2s init && x2s login`'
+  )
   .action(init);
 
 // Login command
