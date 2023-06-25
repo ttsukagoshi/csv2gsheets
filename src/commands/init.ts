@@ -1,26 +1,28 @@
-// Create a config file in the current directory
-// When called, this command should prompt a series of questions to the user
-// on the command line and then write a config file to the current directory
-// The questions to be asked are:
-// - Enter the full path of the folder in which your .xlsx files are located. xlsx2gsheets will upload all .xlsx files in this folder to Google Drive.
-// - Enter the ID of the Google Drive folder to which you want to upload your .xlsx files.
-// - Do you want to update existing Google Sheets files? (y/n)
-// Use the inquirer package to prompt the user for input
+// init command
 
 // Import the necessary modules
 import inquirer from 'inquirer';
 import fs from 'fs';
 import path from 'path';
 
-import { CONFIG_FILE_NAME } from '../constants.js';
+import { CONFIG_FILE_NAME, Config } from '../constants.js';
+
+// Define the data type of the questions to be asked
+type Question = {
+  name: string;
+  type: string;
+  message: string;
+  validate?: (value: string) => boolean | string;
+  default?: boolean;
+};
 
 // Define the questions to be asked
-const questions = [
+const questions: Question[] = [
   {
     name: 'sourceDir',
     type: 'input',
     message:
-      'Enter the full path of the folder in which your .xlsx files are located. xlsx2gsheets will upload all .xlsx files in this folder to Google Drive.',
+      'Enter the full path of the folder in which your .xlsx files are located.',
     validate: (value: string) => {
       if (fs.existsSync(value)) {
         return true;
@@ -55,7 +57,7 @@ const questions = [
  */
 async function createConfigFile(): Promise<void> {
   // Prompt the user for input
-  const answers = await inquirer.prompt(questions);
+  const answers: Config = await inquirer.prompt(questions);
 
   // Write the answers to a config file
   fs.writeFileSync(
@@ -64,11 +66,14 @@ async function createConfigFile(): Promise<void> {
   );
 }
 
+/**
+ * Create a config file `x2s.config.json` in the current directory.
+ * If a config file already exists, prompt the user to overwrite it.
+ */
 export default async function init(): Promise<void> {
-  // Checks if a config file already exists
-  // If it does, prompt the user to overwrite it
+  // If a config file already exists, prompt the user to overwrite it
   if (fs.existsSync(path.join(process.cwd(), CONFIG_FILE_NAME))) {
-    const overwrite = await inquirer.prompt([
+    const overwrite: { overwrite: boolean } = await inquirer.prompt([
       {
         name: 'overwrite',
         type: 'confirm',

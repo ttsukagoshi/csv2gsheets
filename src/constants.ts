@@ -7,7 +7,7 @@ export const CONFIG_FILE_NAME = 'x2s.config.json';
 export const HOME_DIR = process.env.HOME || process.env.USERPROFILE || '';
 
 // Types
-export type ConfigObject = {
+export type Config = {
   sourceDir: string;
   targetDriveFolderId: string;
   updateExistingGoogleSheets: boolean;
