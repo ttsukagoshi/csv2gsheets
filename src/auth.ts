@@ -1,4 +1,5 @@
-// Handle authentication with Google Drive API
+// Handle authentication and authorization with Google Drive API
+// https://developers.google.com/drive/api/v3/quickstart/nodejs
 
 import fs from 'fs';
 import path from 'path';
@@ -10,6 +11,8 @@ import { CREDENTIALS_FILE_NAME, TOKEN_FILE_NAME, HOME_DIR } from './constants';
 
 // OAuth Scopes
 const SCOPES = ['https://www.googleapis.com/auth/drive'];
+
+// File paths
 const CREDENTIALS_PATH = path.join(HOME_DIR, CREDENTIALS_FILE_NAME);
 export const TOKEN_PATH = path.join(HOME_DIR, TOKEN_FILE_NAME);
 
@@ -49,6 +52,7 @@ async function saveToken(client: OAuth2Client): Promise<void> {
 
 /**
  * Load or request authorization to call Google APIs.
+ * @returns The OAuth2Client object.
  */
 export default async function authorize(): Promise<OAuth2Client> {
   let client = await loadSavedToken();
