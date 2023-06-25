@@ -1,11 +1,4 @@
-// Create a config file in the current directory
-// When called, this command should prompt a series of questions to the user
-// on the command line and then write a config file to the current directory
-// The questions to be asked are:
-// - Enter the full path of the folder in which your .xlsx files are located. xlsx2gsheets will upload all .xlsx files in this folder to Google Drive.
-// - Enter the ID of the Google Drive folder to which you want to upload your .xlsx files.
-// - Do you want to update existing Google Sheets files? (y/n)
-// Use the inquirer package to prompt the user for input
+// init command
 
 // Import the necessary modules
 import inquirer from 'inquirer';
