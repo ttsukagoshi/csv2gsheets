@@ -1,3 +1,5 @@
 src
-tests
+test
+coverage
+node_modules
 .*
