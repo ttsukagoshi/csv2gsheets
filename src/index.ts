@@ -9,8 +9,10 @@ import { PACKAGE_JSON } from './package.js';
 import { spinner, stopSpinner } from './utils.js';
 
 // Commands
-import init from './commands/init.js';
 import convert from './commands/convert.js';
+import init from './commands/init.js';
+import login from './commands/login.js';
+import logout from './commands/logout.js';
 
 // Make unhandled promise rejections fail loudly instead of the default silent fail
 loudRejection();
@@ -36,6 +38,19 @@ program
   .command('init')
   .description('Create a configuration file in the current directory')
   .action(init);
+
+// Login command
+program
+  .command('login')
+  .description('Login to the Google service')
+  .option('-s, --status', 'Print who is logged in')
+  .action(login);
+
+// Logout command
+program
+  .command('logout')
+  .description('Logout of the Google service')
+  .action(logout);
 
 // Convert command
 program

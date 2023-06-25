@@ -7,14 +7,28 @@ import { authenticate } from '@google-cloud/local-auth';
 import { google } from 'googleapis';
 import { OAuth2Client } from 'google-auth-library';
 
-import { CREDENTIALS_FILE_NAME, TOKEN_FILE_NAME, HOME_DIR } from './constants';
+import {
+  CREDENTIALS_FILE_NAME,
+  TOKEN_FILE_NAME,
+  HOME_DIR,
+} from './constants.js';
 
 // OAuth Scopes
-const SCOPES = ['https://www.googleapis.com/auth/drive'];
+const SCOPES = [
+  'https://www.googleapis.com/auth/drive',
+  'https://www.googleapis.com/auth/userinfo.email',
+];
 
 // File paths
 const CREDENTIALS_PATH = path.join(HOME_DIR, CREDENTIALS_FILE_NAME);
 export const TOKEN_PATH = path.join(HOME_DIR, TOKEN_FILE_NAME);
+
+/**
+ * Check if the previously authorized token file exists.
+ */
+export function isAuthorized(): boolean {
+  return fs.existsSync(TOKEN_PATH);
+}
 
 /**
  * Read previously authorized tokens from the save file.
@@ -22,7 +36,7 @@ export const TOKEN_PATH = path.join(HOME_DIR, TOKEN_FILE_NAME);
  */
 export async function loadSavedToken(): Promise<OAuth2Client | null> {
   try {
-    if (fs.existsSync(TOKEN_PATH)) {
+    if (isAuthorized()) {
       const token = await fs.promises.readFile(TOKEN_PATH, 'utf8');
       return google.auth.fromJSON(JSON.parse(token)) as OAuth2Client;
     } else {
@@ -45,6 +59,7 @@ async function saveToken(client: OAuth2Client): Promise<void> {
     type: 'authorized_user',
     client_id: key.client_id,
     client_secret: key.client_secret,
+    access_token: client.credentials.access_token,
     refresh_token: client.credentials.refresh_token,
   });
   await fs.promises.writeFile(TOKEN_PATH, payload);
@@ -54,7 +69,7 @@ async function saveToken(client: OAuth2Client): Promise<void> {
  * Load or request authorization to call Google APIs.
  * @returns The OAuth2Client object.
  */
-export default async function authorize(): Promise<OAuth2Client> {
+export async function authorize(): Promise<OAuth2Client> {
   let client = await loadSavedToken();
   if (!client) {
     client = await authenticate({
@@ -67,5 +82,23 @@ export default async function authorize(): Promise<OAuth2Client> {
     return client;
   } else {
     return client;
+  }
+}
+
+/**
+ * Gets the user's email using the OAuth2Client object.
+ * If the user is not authorized, return null
+ */
+export async function getUserEmail(): Promise<string | null | undefined> {
+  if (isAuthorized()) {
+    const client = await authorize();
+    try {
+      return (await google.oauth2('v2').userinfo.get({ auth: client })).data
+        .email;
+    } catch {
+      return null;
+    }
+  } else {
+    return null;
   }
 }
