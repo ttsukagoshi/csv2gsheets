@@ -4,11 +4,12 @@ import loudRejection from 'loud-rejection';
 import { program } from 'commander';
 
 // Local imports
-import { X2sError } from './x2s-error';
-import { PACKAGE_JSON } from './package';
-import { spinner, stopSpinner } from './utils';
+import { X2sError } from './x2s-error.js';
+import { PACKAGE_JSON } from './package.js';
+import { spinner, stopSpinner } from './utils.js';
 
 // Commands
+import init from './commands/init.js';
 import convert from './commands/convert.js';
 
 // Make unhandled promise rejections fail loudly instead of the default silent fail
@@ -29,6 +30,12 @@ program
   .description(
     `${PACKAGE_JSON?.name} - ${PACKAGE_JSON?.description}\nUse \`x2s\` for shorthand.`
   );
+
+// Init command
+program
+  .command('init')
+  .description('Create a configuration file in the current directory')
+  .action(init);
 
 // Convert command
 program

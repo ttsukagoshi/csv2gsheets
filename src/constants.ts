@@ -5,3 +5,10 @@ export const CONFIG_FILE_NAME = 'x2s.config.json';
 
 // Home Directory
 export const HOME_DIR = process.env.HOME || process.env.USERPROFILE || '';
+
+// Types
+export type ConfigObject = {
+  sourceDir: string;
+  targetDriveFolderId: string;
+  updateExistingGoogleSheets: boolean;
+};

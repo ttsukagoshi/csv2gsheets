@@ -37,6 +37,7 @@
   },
   "homepage": "https://github.com/ttsukagoshi/xlsx2gsheets#readme",
   "devDependencies": {
+    "@types/inquirer": "^9.0.3",
     "@types/jest": "^29.5.1",
     "@typescript-eslint/eslint-plugin": "^5.60.0",
     "@typescript-eslint/parser": "^5.60.0",
@@ -53,6 +54,7 @@
     "@google-cloud/local-auth": "^2.1.1",
     "commander": "^11.0.0",
     "googleapis": "^118.0.0",
+    "inquirer": "^9.2.7",
     "loud-rejection": "^2.2.0",
     "ora": "^6.3.0",
     "read-pkg-up": "^9.1.0"

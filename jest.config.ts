@@ -4,8 +4,6 @@
  */
 
 export default {
-  // preset: 'ts-jest/presets/default-esm', // A preset that is used as a base for Jest's configuration
-
   // Automatically clear mock calls, instances, contexts and results before every test
   clearMocks: true,
   // Indicates whether the coverage information should be collected while executing the test
@@ -14,6 +12,7 @@ export default {
     '<rootDir>/src/**/*.ts',
     '!<rootDir>/src/**/index.ts',
     '!<rootDir>/src/**/constants.ts',
+    '!<rootDir>/src/**/package.ts',
     '!<rootDir>/src/**/utils.ts',
     '!<rootDir>/src/**/x2s-error.ts',
   ],
@@ -23,10 +22,6 @@ export default {
   coverageProvider: 'v8',
   extensionsToTreatAsEsm: ['.ts'],
   moduleFileExtensions: ['ts', 'js', 'mjs', 'json'],
-  // moduleNameMapper: {
-  // '^(\\.{1,2}/.*)\\.js$': '$1',
-  // '^#(.*)$': './vendor/$1',
-  // },
   testEnvironment: 'node',
   testMatch: ['**/test/**/*.test.ts'], // The glob patterns Jest uses to detect test files
   transform: {
@@ -40,8 +35,5 @@ export default {
       },
     ],
   },
-  // transformIgnorePatterns: [
-  // '<rootDir>/node_modules/(?!(cli-cursor|is-interactive|is-unicode-supported|log-symbols|ora|read-pkg|read-pkg-up|restore-cursor)/)',
-  // ],
   verbose: true,
 };

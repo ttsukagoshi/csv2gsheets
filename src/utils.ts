@@ -1,3 +1,5 @@
+// Utility functions
+
 import ora from 'ora';
 
 /**
