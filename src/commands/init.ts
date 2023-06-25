@@ -5,7 +5,9 @@ import inquirer from 'inquirer';
 import fs from 'fs';
 import path from 'path';
 
+import { isAuthorized } from '../auth.js';
 import { CONFIG_FILE_NAME, Config } from '../constants.js';
+import login from './login.js';
 
 // Define the data type of the questions to be asked
 type Question = {
@@ -66,11 +68,17 @@ async function createConfigFile(): Promise<void> {
   );
 }
 
+type CommandOptions = {
+  readonly login?: boolean;
+};
+
 /**
  * Create a config file `x2s.config.json` in the current directory.
  * If a config file already exists, prompt the user to overwrite it.
+ * If the option "login" is true, authorize the user as well.
+ * This is same as running `x2s init && x2s login`.
  */
-export default async function init(): Promise<void> {
+export default async function init(options?: CommandOptions): Promise<void> {
   // If a config file already exists, prompt the user to overwrite it
   if (fs.existsSync(path.join(process.cwd(), CONFIG_FILE_NAME))) {
     const overwrite: { overwrite: boolean } = await inquirer.prompt([
@@ -89,5 +97,14 @@ export default async function init(): Promise<void> {
     }
   } else {
     await createConfigFile();
+  }
+  // If the option "login" is true, authorize the user
+  if (options?.login) {
+    await login({ status: true });
+    if (!isAuthorized()) {
+      console.info('Logging in...');
+      await login();
+      await login({ status: true });
+    }
   }
 }

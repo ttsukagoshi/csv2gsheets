@@ -7,8 +7,12 @@ type CommandOptions = {
   readonly status?: boolean;
 };
 
-export default async function login(options?: CommandOptions) {
-  // If the option "status" is true, return the current user name
+/**
+ * Authorize the user.
+ * If the option "status" is true, return the current user name
+ * or a message that the user is not logged in.
+ */
+export default async function login(options?: CommandOptions): Promise<void> {
   if (options?.status) {
     if (isAuthorized()) {
       const email = await getUserEmail();
