@@ -11,4 +11,5 @@ export type Config = {
   sourceDir: string;
   targetDriveFolderId: string;
   updateExistingGoogleSheets: boolean;
+  saveOriginalFilesToDrive: boolean;
 };
