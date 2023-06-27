@@ -1,19 +1,6 @@
 // Messages for this tool
 
-type Messages = {
-  error: {
-    [key: string]: string;
-  };
-  log: {
-    youAreLoggedInAs: (email: string) => string;
-    [key: string]: string;
-  };
-  prompt: {
-    [key: string]: string;
-  };
-};
-
-export const MESSAGES: Messages = {
+export const MESSAGES = {
   error: {
     typeErrorSourceDirMustBeString:
       'The value of sourceDir in the configuration file must be a string.',
@@ -31,6 +18,7 @@ export const MESSAGES: Messages = {
   log: {
     loggingIn: 'Logging in...',
     noChangesWereMade: 'No changes were made.',
+    youHaveBeenLoggedOut: 'You have been logged out.',
     youAreLoggedInAs: (email: string) => `You are logged in as ${email}.`,
     youAreNotLoggedIn: 'You are not logged in.',
   },
