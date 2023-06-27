@@ -3,7 +3,7 @@
 // Alternatively, the path to the configuration file can be specified by the user in the command line option --config-file-path
 // If the config file is not found, the program will exit with an error message.
 
-// The format of the configuration file is defined in src\constants.ts as type Config
+// The format of the configuration file is defined in src/constants.ts as type Config
 // The configuration file is validated against this type before being used in subsequent processing.
 // If the configuration file is not valid, the program will exit with an error message.
 // The program will look in the directory specified by sourceDir in Config for Excel files with the extension of .xlsx,
