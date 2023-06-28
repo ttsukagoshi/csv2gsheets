@@ -1,5 +1,7 @@
 // Messages for this tool
 
+import { CREDENTIALS_FILE_NAME } from './constants.js';
+
 export const MESSAGES = {
   error: {
     typeErrorSourceDirMustBeString:
@@ -10,8 +12,14 @@ export const MESSAGES = {
       'The value of updateExistingGoogleSheets in the configuration file must be a boolean, i.e., it must be either true or false.',
     typeErrorSaveOriginalFilesToDriveMustBeBoolean:
       'The value of saveOriginalFilesToDrive in the configuration file must be a boolean, i.e., it must be either true or false.',
+    x2sErrorConfigFileNotFound:
+      'Enter a valid path for the configuration file. You can create a new one by running the command `x2s init`.',
+    x2sErrorCredentialsFileNotFound: `${CREDENTIALS_FILE_NAME} not found.`,
+    x2sErrorNotLoggedIn: 'You are not logged in. Please run `x2s login`.',
     x2sErrorSourceDirMustBeValidPath:
       'The value of sourceDir in the configuration file must be a valid path.',
+    x2sErrorTargetDriveFolderIdInvalid:
+      'The target Google Drive folder ID is either invalid or you do not have access to it. Please check the ID and update the config file.',
     x2sErrorConfigFileMustContain4Properties:
       'The configuration file must contain the following four properties: sourceDir, targetDriveFolderId, updateExistingGoogleSheets, and saveOriginalFilesToDrive.',
   },
