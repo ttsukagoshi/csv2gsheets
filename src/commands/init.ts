@@ -8,6 +8,7 @@ import path from 'path';
 import { isAuthorized } from '../auth.js';
 import { CONFIG_FILE_NAME, Config } from '../constants.js';
 import login from './login.js';
+import { MESSAGES } from '../messages.js';
 
 // Define the data type of the questions to be asked
 type Question = {
@@ -23,34 +24,38 @@ const questions: Question[] = [
   {
     name: 'sourceDir',
     type: 'input',
-    message:
-      'Enter the full path of the folder in which your .xlsx files are located.',
+    message: MESSAGES.prompt.enterSourceDir,
     validate: (value: string) => {
       if (fs.existsSync(value)) {
         return true;
       } else {
-        return 'Please enter a valid path.';
+        return MESSAGES.prompt.enterValidPath;
       }
     },
   },
   {
     name: 'targetDriveFolderId',
     type: 'input',
-    message:
-      'Enter the ID of the Google Drive folder to which you want to upload your .xlsx files.',
+    message: MESSAGES.prompt.enterTargetDriveFolderId,
     validate: (value: string) => {
       if (value.length) {
         return true;
       } else {
-        return 'Please enter a valid ID.';
+        return MESSAGES.prompt.enterValidId;
       }
     },
   },
   {
     name: 'updateExistingGoogleSheets',
     type: 'confirm',
-    message: 'Do you want to update existing Google Sheets files? (y/n)',
+    message: MESSAGES.prompt.updateExistingGoogleSheetsYN,
     default: false,
+  },
+  {
+    name: 'saveOriginalFilesToDrive',
+    type: 'confirm',
+    message: MESSAGES.prompt.saveOriginalFilesToDriveYN,
+    default: true,
   },
 ];
 
@@ -85,7 +90,7 @@ export default async function init(options?: CommandOptions): Promise<void> {
       {
         name: 'overwrite',
         type: 'confirm',
-        message: `A config file already exists in this directory. Do you want to overwrite it? (y/n)`,
+        message: MESSAGES.prompt.overwriteExistingConfigFileYN,
         default: false,
       },
     ]);
@@ -93,7 +98,7 @@ export default async function init(options?: CommandOptions): Promise<void> {
       await createConfigFile();
     } else {
       // exit without doing anything
-      console.info('No changes were made.');
+      console.info(MESSAGES.log.noChangesWereMade);
     }
   } else {
     await createConfigFile();
@@ -102,7 +107,7 @@ export default async function init(options?: CommandOptions): Promise<void> {
   if (options?.login) {
     await login({ status: true });
     if (!isAuthorized()) {
-      console.info('Logging in...');
+      console.info(MESSAGES.log.loggingIn);
       await login();
       await login({ status: true });
     }

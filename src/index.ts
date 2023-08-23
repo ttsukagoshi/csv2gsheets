@@ -60,7 +60,15 @@ program
 program
   .command('convert')
   .description(
-    'Convert local Excel files into Google Sheets files based on the configuration file'
+    'Convert local Excel files into Google Sheets files based on the config file'
+  )
+  .option(
+    '-c, --config-file-path <path>',
+    'Path to the configuration file. Default: x2s.config.json in the current working directory'
+  )
+  .option(
+    '-d, --dry-run',
+    'Dry run. Do not actually convert the files. Useful for testing the configuration file.'
   )
   .action(convert);
 
