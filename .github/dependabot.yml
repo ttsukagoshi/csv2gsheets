@@ -26,3 +26,4 @@ updates:
       include: 'scope'
     target-branch: 'main'
     versioning-strategy: 'increase'
+    open-pull-requests-limit: 10
