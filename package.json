@@ -54,7 +54,7 @@
     "@google-cloud/local-auth": "^3.0.0",
     "commander": "^11.0.0",
     "googleapis": "^126.0.0",
-    "inquirer": "^9.2.7",
+    "inquirer": "^9.2.10",
     "loud-rejection": "^2.2.0",
     "ora": "^7.0.1",
     "read-pkg-up": "^9.1.0"
