@@ -24,6 +24,7 @@ env:
 parser: '@typescript-eslint/parser'
 parserOptions:
   ecmaVersion: 2020
+  project: true
   sourceType: module
 
 ###########
@@ -32,7 +33,7 @@ parserOptions:
 extends:
   - 'eslint:recommended'
   - 'plugin:prettier/recommended'
-  - 'plugin:@typescript-eslint/recommended'
+  - 'plugin:@typescript-eslint/recommended-type-checked'
 plugins:
   - '@typescript-eslint'
 #########
