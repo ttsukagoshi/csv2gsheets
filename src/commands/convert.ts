@@ -1,9 +1,9 @@
-// Convert local Excel files into Google Sheets files based on the config file c2g.config.json
+// Convert local CSV files into Google Sheets files based on the config file c2g.config.json
 // By default, c2g.config.json in the current working directory will be looked for and used in subsequent processing.
 // Alternatively, the path to the configuration file can be specified by the user in the command line option --config-file-path
 // If the config file is not found, the program will exit with an error message.
 
-// The format of the configuration file is defined in src/constants.ts as type Config
+// The format of the configuration file is defined in src/constants.ts as interface Config
 // The configuration file is validated against this type before being used in subsequent processing.
 // If the configuration file is not valid, the program will exit with an error message.
 // The program will look in the directory specified by sourceDir in Config for Excel files with the extension of .xlsx,
@@ -16,7 +16,6 @@
 
 // If the --browse option is specified, the program will open the Google Drive folder in the default browser after the conversion is complete.
 
-// Use the xlsx package to read Excel files
 // Use the googleapis package to access Google Drive and Google Sheets
 
 import fs from 'fs';
@@ -24,7 +23,7 @@ import { google } from 'googleapis';
 import { OAuth2Client } from 'google-auth-library';
 import path from 'path';
 
-import { authorize, getUserEmail, isAuthorized } from '../auth.js';
+import { authorize, isAuthorized } from '../auth.js';
 import { Config, CONFIG_FILE_NAME } from '../constants.js';
 import { MESSAGES } from '../messages.js';
 import { C2gError } from '../c2g-error.js';
@@ -33,11 +32,6 @@ interface CommandOptions {
   readonly browse?: boolean;
   readonly configFilePath?: string;
   readonly dryRun?: boolean;
-}
-
-interface DrivePermissionQueryParameters {
-  readonly fileId: string;
-  pageToken?: string;
 }
 
 /**
@@ -51,7 +45,10 @@ function readConfigFileSync(configFilePath: string): Config {
     throw new C2gError(MESSAGES.error.c2gErrorConfigFileNotFound);
   } else {
     // Read the configuration file and return its contents as an object
-    return JSON.parse(fs.readFileSync(configFilePath, 'utf8'));
+    const parsedConfig = JSON.parse(
+      fs.readFileSync(configFilePath, 'utf8'),
+    ) as Config;
+    return parsedConfig;
   }
 }
 
@@ -105,74 +102,6 @@ function validateConfig(configObj: Config): Config {
   }
 }
 
-/**
- * Check if the authorized user has editor permission to the given Google Drive folder ID.
- * If the user has access is able to edit its contents, return true.
- * If the folder ID is 'root', 'Root', or 'ROOT', return true as well.
- * @param folderId The ID of the Google Drive folder
- * @param auth The OAuth2client object
- * @returns true if the user has editor permission to the given Google Drive folder ID, or the ID is 'root'; false otherwise
- */
-async function validateGoogleDriveFolderId(
-  folderId: string,
-  auth: OAuth2Client,
-): Promise<boolean> {
-  // If the folder ID is 'root', 'Root', or 'ROOT', return true
-  if (folderId.toLowerCase() === 'root') {
-    return true;
-  } else {
-    const drive = google.drive({ version: 'v3', auth: auth });
-    // Check if the folder exists
-    const folder = await drive.files.get({ fileId: folderId, fields: 'id' });
-    if (!folder) {
-      return false;
-    }
-    // Check if the user has permission to access the folder
-    const permissions = await getDriveFilePermissions(folderId, auth);
-    // [TODO] Check if the user has editor permission to the folder
-    return true;
-  }
-}
-
-/**
- * Get the full list of permissions in a given Google Drive file or folder.
- * @param fileId The ID of the Google Drive file or folder
- * @param auth The OAuth2client object
- * @param nextPageToken nextPageToken for the next page of results
- * @returns The full list of permissions in the given Google Drive file or folder
- * @see https://developers.google.com/drive/api/reference/rest/v3/permissions/list
- */
-async function getDriveFilePermissions(
-  fileId: string,
-  auth: OAuth2Client,
-  nextPageToken?: string,
-) {
-  const drive = google.drive({ version: 'v3', auth: auth });
-  const queryParameters: DrivePermissionQueryParameters = {
-    fileId: fileId,
-  };
-  if (nextPageToken) {
-    queryParameters['pageToken'] = nextPageToken;
-  }
-  const returnPermissionsList = [];
-  const permissions = await drive.permissions.list(queryParameters);
-  if (!permissions || !permissions.data.permissions) {
-    return undefined;
-  }
-  returnPermissionsList.push(...permissions.data.permissions);
-  // If permissions has nextPageToken, get the next page of results recursively
-  if (permissions.data.nextPageToken) {
-    returnPermissionsList.push(
-      ...(await getDriveFilePermissions(
-        fileId,
-        auth,
-        permissions.data.nextPageToken,
-      )),
-    );
-  }
-  return returnPermissionsList; // [To-Do] Perhaps return just the user email and the role in an object using Array.reduce()?
-}
-
 export default async function (options: CommandOptions): Promise<void> {
   console.log('running convert. options:', options); // [test]
   // Checks if the user is already logged in
@@ -188,17 +117,36 @@ export default async function (options: CommandOptions): Promise<void> {
   console.log('config:', config); // [test]
   // Authorize the user
   const auth = await authorize();
-  // Check if the target Google Drive folder exists
-  if (!(await validateGoogleDriveFolderId(config.targetDriveFolderId, auth))) {
-    throw new C2gError(MESSAGES.error.c2gErrorTargetDriveFolderIdInvalid);
+
+  // Read the contents of sourceDir and check if there are any CSV files with the extension of .csv
+  const csvFiles = [];
+  if (config.sourceDir.endsWith('.csv')) {
+    // If sourceDir is a single CSV file, simply add it to csvFiles
+    // Note that the value of config.sourceDir is already validated in validateConfig()
+    csvFiles.push(config.sourceDir);
+  } else {
+    // If sourceDir is a directory containing CSV files, add the full path of each CSV file to csvFiles
+    const files = fs.readdirSync(config.sourceDir);
+    files.forEach((file) => {
+      const fileLower = file.toLowerCase();
+      if (fileLower.endsWith('.csv')) {
+        csvFiles.push(path.join(config.sourceDir, file));
+      }
+    });
   }
-  // [TO-DO] Read the contents of sourceDir and check if there are any Excel files with the extension of .xlsx
-  // [TO-DO] Read contents of each .xlsx files. For each file, check if there is an existing Google Sheets file with the same name in the target Google Drive folder
-  // [TO-DO] If it exists, and the value of config.updateExistingGoogleSheets is true, update the existing Google Sheets file; if not, create a new Google Sheets file
+  // If there are no CSV files, exit the program with a message
+  if (csvFiles.length === 0) {
+    throw new C2gError(MESSAGES.error.c2gErrorNoCsvFilesFound);
+  }
+
+  csvFiles.forEach((csvFile) => {
+    // Read contents of each .csv files.
+    // For each file, check if there is an existing Google Sheets file with the same name in the target Google Drive folder
+    // [TO-DO] If it exists, and the value of config.updateExistingGoogleSheets is true, update the existing Google Sheets file; if not, create a new Google Sheets file
+  });
 
   // Open the target Google Drive folder in the default browser if the --browse option is specified
   if (options.browse) {
-    // Open the target Google Drive folder in the default browser
     const url =
       config.targetDriveFolderId.toLowerCase() === 'root'
         ? 'https://drive.google.com/drive/my-drive'
