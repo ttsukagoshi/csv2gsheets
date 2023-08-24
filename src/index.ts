@@ -64,6 +64,10 @@ program
     'Convert local CSV files into Google Sheets files based on the config file',
   )
   .option(
+    '-b, --browse',
+    'Open the Google Drive folder in the default browser after the conversion is complete',
+  )
+  .option(
     '-c, --config-file-path <path>',
     'Path to the configuration file. Default: c2g.config.json in the current working directory',
   )
