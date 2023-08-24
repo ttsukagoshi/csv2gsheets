@@ -13,7 +13,7 @@ import {
   HOME_DIR,
 } from './constants.js';
 import { MESSAGES } from './messages.js';
-import { X2sError } from './x2s-error.js';
+import { C2gError } from './c2g-error.js';
 
 // OAuth Scopes
 const SCOPES = [
@@ -31,7 +31,7 @@ export const TOKEN_PATH = path.join(HOME_DIR, TOKEN_FILE_NAME);
 export function isAuthorized(): boolean {
   // Check if the credential file exists and return an error if it doesn't
   if (!fs.existsSync(CREDENTIALS_PATH)) {
-    throw new X2sError(MESSAGES.error.x2sErrorCredentialsFileNotFound);
+    throw new C2gError(MESSAGES.error.c2gErrorCredentialsFileNotFound);
   }
   return fs.existsSync(TOKEN_PATH);
 }

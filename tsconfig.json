@@ -29,6 +29,6 @@
     /* Completeness */
     "skipLibCheck": true /* Skip type checking all .d.ts files. */
   },
-  "include": ["src/**/*", "test/**/*"],
+  "include": ["src/**/*", "test/**/*", "jest.config.ts"],
   "exclude": ["build", "node_modules"]
 }

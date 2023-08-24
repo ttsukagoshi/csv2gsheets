@@ -1,5 +1,5 @@
-// Convert local Excel files into Google Sheets files based on the config file x2s.config.json
-// By default, x2s.config.json in the current working directory will be looked for and used in subsequent processing.
+// Convert local Excel files into Google Sheets files based on the config file c2g.config.json
+// By default, c2g.config.json in the current working directory will be looked for and used in subsequent processing.
 // Alternatively, the path to the configuration file can be specified by the user in the command line option --config-file-path
 // If the config file is not found, the program will exit with an error message.
 
@@ -23,12 +23,11 @@ import fs from 'fs';
 import { google } from 'googleapis';
 import { OAuth2Client } from 'google-auth-library';
 import path from 'path';
-import xlsx from 'node-xlsx';
 
 import { authorize, getUserEmail, isAuthorized } from '../auth.js';
 import { Config, CONFIG_FILE_NAME } from '../constants.js';
 import { MESSAGES } from '../messages.js';
-import { X2sError } from '../x2s-error.js';
+import { C2gError } from '../c2g-error.js';
 
 interface CommandOptions {
   readonly browse?: boolean;
@@ -49,7 +48,7 @@ interface DrivePermissionQueryParameters {
 function readConfigFileSync(configFilePath: string): Config {
   // Check if the configFilePath is a valid path
   if (!fs.existsSync(configFilePath)) {
-    throw new X2sError(MESSAGES.error.x2sErrorConfigFileNotFound);
+    throw new C2gError(MESSAGES.error.c2gErrorConfigFileNotFound);
   } else {
     // Read the configuration file and return its contents as an object
     return JSON.parse(fs.readFileSync(configFilePath, 'utf8'));
@@ -80,29 +79,29 @@ function validateConfig(configObj: Config): Config {
     // If targetDriveFolderId is not a string, return false
     if (typeof configObj.targetDriveFolderId !== 'string') {
       throw new TypeError(
-        MESSAGES.error.typeErrorTargetDriveFolderIdMustBeString
+        MESSAGES.error.typeErrorTargetDriveFolderIdMustBeString,
       );
     }
     // If updateExistingGoogleSheets is not a boolean, return false
     if (typeof configObj.updateExistingGoogleSheets !== 'boolean') {
       throw new TypeError(
-        MESSAGES.error.typeErrorUpdateExistingGoogleSheetsMustBeBoolean
+        MESSAGES.error.typeErrorUpdateExistingGoogleSheetsMustBeBoolean,
       );
     }
     // If saveOriginalFilesToDrive is not a boolean, return false
     if (typeof configObj.saveOriginalFilesToDrive !== 'boolean') {
       throw new TypeError(
-        MESSAGES.error.typeErrorSaveOriginalFilesToDriveMustBeBoolean
+        MESSAGES.error.typeErrorSaveOriginalFilesToDriveMustBeBoolean,
       );
     }
     // Check the validity of the values of the properties
     // If sourceDir is not a valid path, return false
     if (!fs.existsSync(configObj.sourceDir)) {
-      throw new X2sError(MESSAGES.error.x2sErrorSourceDirMustBeValidPath);
+      throw new C2gError(MESSAGES.error.c2gErrorSourceDirMustBeValidPath);
     }
     return configObj;
   } else {
-    throw new X2sError(MESSAGES.error.x2sErrorConfigFileMustContain4Properties);
+    throw new C2gError(MESSAGES.error.c2gErrorConfigFileMustContain4Properties);
   }
 }
 
@@ -116,7 +115,7 @@ function validateConfig(configObj: Config): Config {
  */
 async function validateGoogleDriveFolderId(
   folderId: string,
-  auth: OAuth2Client
+  auth: OAuth2Client,
 ): Promise<boolean> {
   // If the folder ID is 'root', 'Root', or 'ROOT', return true
   if (folderId.toLowerCase() === 'root') {
@@ -146,7 +145,7 @@ async function validateGoogleDriveFolderId(
 async function getDriveFilePermissions(
   fileId: string,
   auth: OAuth2Client,
-  nextPageToken?: string
+  nextPageToken?: string,
 ) {
   const drive = google.drive({ version: 'v3', auth: auth });
   const queryParameters: DrivePermissionQueryParameters = {
@@ -167,8 +166,8 @@ async function getDriveFilePermissions(
       ...(await getDriveFilePermissions(
         fileId,
         auth,
-        permissions.data.nextPageToken
-      ))
+        permissions.data.nextPageToken,
+      )),
     );
   }
   return returnPermissionsList; // [To-Do] Perhaps return just the user email and the role in an object using Array.reduce()?
@@ -178,7 +177,7 @@ export default async function (options: CommandOptions): Promise<void> {
   console.log('running convert. options:', options); // [test]
   // Checks if the user is already logged in
   if (!isAuthorized()) {
-    throw new X2sError(MESSAGES.error.x2sErrorNotLoggedIn);
+    throw new C2gError(MESSAGES.error.c2gErrorNotLoggedIn);
   }
   // If configFilePath is not specified, use the CONFIG_FILE_NAME in the current working directory
   const configFilePath = options.configFilePath
@@ -191,7 +190,7 @@ export default async function (options: CommandOptions): Promise<void> {
   const auth = await authorize();
   // Check if the target Google Drive folder exists
   if (!(await validateGoogleDriveFolderId(config.targetDriveFolderId, auth))) {
-    throw new X2sError(MESSAGES.error.x2sErrorTargetDriveFolderIdInvalid);
+    throw new C2gError(MESSAGES.error.c2gErrorTargetDriveFolderIdInvalid);
   }
   // [TO-DO] Read the contents of sourceDir and check if there are any Excel files with the extension of .xlsx
   // [TO-DO] Read contents of each .xlsx files. For each file, check if there is an existing Google Sheets file with the same name in the target Google Drive folder
