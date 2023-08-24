@@ -15,6 +15,7 @@ export const MESSAGES = {
     c2gErrorConfigFileNotFound:
       'Enter a valid path for the configuration file. You can create a new one by running the command `c2g init`.',
     c2gErrorCredentialsFileNotFound: `${CREDENTIALS_FILE_NAME} not found.`,
+    c2gErrorInvalidCredentials: `Invalid credentials. Please check the structure of your ${CREDENTIALS_FILE_NAME}.`,
     c2gErrorNotLoggedIn: 'You are not logged in. Please run `c2g login`.',
     c2gErrorSourceDirMustBeValidPath:
       'The value of sourceDir in the configuration file must be a valid path.',
