@@ -11,13 +11,16 @@ import login from './login.js';
 import { MESSAGES } from '../messages.js';
 
 // Define the data type of the questions to be asked
-type Question = {
+interface Question {
   name: string;
   type: string;
   message: string;
   validate?: (value: string) => boolean | string;
   default?: boolean;
-};
+}
+interface InquirerInitOverwriteResponse {
+  overwrite: boolean;
+}
 
 // Define the questions to be asked
 const questions: Question[] = [
@@ -64,12 +67,12 @@ const questions: Question[] = [
  */
 async function createConfigFile(): Promise<void> {
   // Prompt the user for input
-  const answers: Config = await inquirer.prompt(questions);
+  const answers = (await inquirer.prompt(questions)) as Config;
 
   // Write the answers to a config file
   fs.writeFileSync(
     path.join(process.cwd(), CONFIG_FILE_NAME),
-    JSON.stringify(answers, null, 2)
+    JSON.stringify(answers, null, 2),
   );
 }
 
@@ -78,22 +81,22 @@ type CommandOptions = {
 };
 
 /**
- * Create a config file `x2s.config.json` in the current directory.
+ * Create a config file `c2g.config.json` in the current directory.
  * If a config file already exists, prompt the user to overwrite it.
  * If the option "login" is true, authorize the user as well.
- * This is same as running `x2s init && x2s login`.
+ * This is same as running `c2g init && c2g login`.
  */
 export default async function init(options?: CommandOptions): Promise<void> {
   // If a config file already exists, prompt the user to overwrite it
   if (fs.existsSync(path.join(process.cwd(), CONFIG_FILE_NAME))) {
-    const overwrite: { overwrite: boolean } = await inquirer.prompt([
+    const overwrite = (await inquirer.prompt([
       {
         name: 'overwrite',
         type: 'confirm',
         message: MESSAGES.prompt.overwriteExistingConfigFileYN,
         default: false,
       },
-    ]);
+    ])) as InquirerInitOverwriteResponse;
     if (overwrite.overwrite) {
       await createConfigFile();
     } else {

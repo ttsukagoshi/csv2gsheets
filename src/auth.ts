@@ -13,7 +13,7 @@ import {
   HOME_DIR,
 } from './constants.js';
 import { MESSAGES } from './messages.js';
-import { X2sError } from './x2s-error.js';
+import { C2gError } from './c2g-error.js';
 
 // OAuth Scopes
 const SCOPES = [
@@ -25,13 +25,35 @@ const SCOPES = [
 const CREDENTIALS_PATH = path.join(HOME_DIR, CREDENTIALS_FILE_NAME);
 export const TOKEN_PATH = path.join(HOME_DIR, TOKEN_FILE_NAME);
 
+// Interface
+interface CredentialsKey {
+  client_id: string;
+  project_id: string;
+  auth_uri: string;
+  token_uri: string;
+  auth_provider_x509_cert_url: string;
+  client_secret: string;
+  redirect_uris: string[];
+}
+interface Credentials {
+  installed?: CredentialsKey;
+  web?: CredentialsKey;
+}
+interface Token {
+  type: string;
+  client_id: string;
+  client_secret: string;
+  access_token: string;
+  refresh_token: string;
+}
+
 /**
  * Check if the previously authorized token file exists.
  */
 export function isAuthorized(): boolean {
   // Check if the credential file exists and return an error if it doesn't
   if (!fs.existsSync(CREDENTIALS_PATH)) {
-    throw new X2sError(MESSAGES.error.x2sErrorCredentialsFileNotFound);
+    throw new C2gError(MESSAGES.error.c2gErrorCredentialsFileNotFound);
   }
   return fs.existsSync(TOKEN_PATH);
 }
@@ -44,7 +66,7 @@ export async function loadSavedToken(): Promise<OAuth2Client | null> {
   try {
     if (isAuthorized()) {
       const token = await fs.promises.readFile(TOKEN_PATH, 'utf8');
-      return google.auth.fromJSON(JSON.parse(token)) as OAuth2Client;
+      return google.auth.fromJSON(JSON.parse(token) as Token) as OAuth2Client;
     } else {
       return null;
     }
@@ -58,17 +80,24 @@ export async function loadSavedToken(): Promise<OAuth2Client | null> {
  * @param client The OAuth2Client object to serialize.
  */
 async function saveToken(client: OAuth2Client): Promise<void> {
-  const credentials = await fs.promises.readFile(CREDENTIALS_PATH, 'utf8');
-  const parsedCredentials = JSON.parse(credentials);
-  const key = parsedCredentials.installed || parsedCredentials.web;
-  const payload = JSON.stringify({
-    type: 'authorized_user',
-    client_id: key.client_id,
-    client_secret: key.client_secret,
-    access_token: client.credentials.access_token,
-    refresh_token: client.credentials.refresh_token,
-  });
-  await fs.promises.writeFile(TOKEN_PATH, payload);
+  const credentialsStr = await fs.promises.readFile(CREDENTIALS_PATH, 'utf8');
+  const parsedCredentials = JSON.parse(credentialsStr) as Credentials;
+  if ('installed' in parsedCredentials || 'web' in parsedCredentials) {
+    const key = parsedCredentials.installed || parsedCredentials.web;
+    if (!key) {
+      throw new C2gError(MESSAGES.error.c2gErrorInvalidCredentials);
+    }
+    const payload = JSON.stringify({
+      type: 'authorized_user',
+      client_id: key.client_id,
+      client_secret: key.client_secret,
+      access_token: client.credentials.access_token,
+      refresh_token: client.credentials.refresh_token,
+    });
+    await fs.promises.writeFile(TOKEN_PATH, payload);
+  } else {
+    throw new C2gError(MESSAGES.error.c2gErrorInvalidCredentials);
+  }
 }
 
 /**

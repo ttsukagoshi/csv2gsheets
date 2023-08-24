@@ -1,7 +1,7 @@
 {
-  "name": "xlsx2gsheets",
+  "name": "csv2gsheets",
   "version": "0.1.0",
-  "description": "CLI tool to convert local Excel files in a designated directory into Google Sheets files.",
+  "description": "CLI tool to convert local CSV files into Google Sheets files in a designated Google Drive folder.",
   "type": "module",
   "engines": {
     "node": ">=16.0.0"
@@ -9,8 +9,8 @@
   "exports": "./build/src/index.js",
   "main": "build/src/index.js",
   "bin": {
-    "x2s": "build/src/index.js",
-    "xlsx2gsheets": "build/src/index.js"
+    "c2g": "build/src/index.js",
+    "csv2gsheets": "build/src/index.js"
   },
   "files": [
     "docs",
@@ -22,7 +22,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/ttsukagoshi/xlsx2gsheets.git"
+    "url": "git+https://github.com/ttsukagoshi/csv2gsheets.git"
   },
   "keywords": [
     "google-sheets",
@@ -33,9 +33,9 @@
   "author": "ttsukagoshi",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/ttsukagoshi/xlsx2gsheets/issues"
+    "url": "https://github.com/ttsukagoshi/csv2gsheets/issues"
   },
-  "homepage": "https://github.com/ttsukagoshi/xlsx2gsheets#readme",
+  "homepage": "https://github.com/ttsukagoshi/csv2gsheets#readme",
   "devDependencies": {
     "@types/inquirer": "^9.0.3",
     "@types/jest": "^29.5.4",

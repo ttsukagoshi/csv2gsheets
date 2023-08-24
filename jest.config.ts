@@ -15,7 +15,7 @@ export default {
     '!<rootDir>/src/**/constants.ts',
     '!<rootDir>/src/**/package.ts',
     '!<rootDir>/src/**/utils.ts',
-    '!<rootDir>/src/**/x2s-error.ts',
+    '!<rootDir>/src/**/c2g-error.ts',
   ],
   // The directory where Jest should output its coverage files
   coverageDirectory: 'coverage',

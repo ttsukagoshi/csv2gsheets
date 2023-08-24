@@ -1,10 +1,11 @@
 #!/usr/bin/env node
+/* eslint @typescript-eslint/no-floating-promises: ["error", { ignoreIIFE: true }] */
 
 import loudRejection from 'loud-rejection';
 import { program } from 'commander';
 
 // Local imports
-import { X2sError } from './x2s-error.js';
+import { C2gError } from './c2g-error.js';
 import { PACKAGE_JSON } from './package.js';
 import { spinner, stopSpinner } from './utils.js';
 
@@ -24,13 +25,13 @@ program.storeOptionsAsProperties(false);
 program.version(
   PACKAGE_JSON?.version || '0.0.0',
   '-v, --version',
-  'Output the current version'
+  'Output the current version',
 );
 program
-  .name(`${PACKAGE_JSON?.name || 'xlsx2sheets'}`)
+  .name(`${PACKAGE_JSON?.name || 'csv2gsheets'}`)
   .usage('<command> [options]')
   .description(
-    `${PACKAGE_JSON?.name} - ${PACKAGE_JSON?.description}\nUse \`x2s\` for shorthand.`
+    `${PACKAGE_JSON?.name} - ${PACKAGE_JSON?.description}\nUse \`c2g\` for shorthand.`,
   );
 
 // Init command
@@ -39,7 +40,7 @@ program
   .description('Create a configuration file in the current directory')
   .option(
     '-l, --login',
-    'Login to the Google service before creating the file. Same as `x2s init && x2s login`'
+    'Login to the Google service before creating the file. Same as `c2g init && c2g login`',
   )
   .action(init);
 
@@ -60,15 +61,19 @@ program
 program
   .command('convert')
   .description(
-    'Convert local Excel files into Google Sheets files based on the config file'
+    'Convert local CSV files into Google Sheets files based on the config file',
+  )
+  .option(
+    '-b, --browse',
+    'Open the Google Drive folder in the default browser after the conversion is complete',
   )
   .option(
     '-c, --config-file-path <path>',
-    'Path to the configuration file. Default: x2s.config.json in the current working directory'
+    'Path to the configuration file. Default: c2g.config.json in the current working directory',
   )
   .option(
     '-d, --dry-run',
-    'Dry run. Do not actually convert the files. Useful for testing the configuration file.'
+    'Dry run. Do not actually convert the files. Useful for testing the configuration file.',
   )
   .action(convert);
 
@@ -81,7 +86,7 @@ program
   } catch (error) {
     // Handle errors
     stopSpinner();
-    if (error instanceof X2sError) {
+    if (error instanceof C2gError) {
       console.error(error.message);
     } else if (error instanceof Error) {
       process.exitCode = 1;
