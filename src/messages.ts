@@ -1,6 +1,6 @@
 // Messages for this tool
 
-import { CREDENTIALS_FILE_NAME } from './constants.js';
+import { CREDENTIALS_FILE_NAME } from './constants';
 
 export const MESSAGES = {
   error: {

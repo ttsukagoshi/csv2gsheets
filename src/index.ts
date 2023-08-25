@@ -6,14 +6,14 @@ import { program } from 'commander';
 
 // Local imports
 import { C2gError } from './c2g-error.js';
-import { PACKAGE_JSON } from './package.js';
-import { spinner, stopSpinner } from './utils.js';
+import { PACKAGE_JSON } from './package';
+import { spinner, stopSpinner } from './utils';
 
 // Commands
-import convert from './commands/convert.js';
-import init from './commands/init.js';
-import login from './commands/login.js';
-import logout from './commands/logout.js';
+import convert from './commands/convert';
+import init from './commands/init';
+import login from './commands/login';
+import logout from './commands/logout';
 
 // Make unhandled promise rejections fail loudly instead of the default silent fail
 loudRejection();

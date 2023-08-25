@@ -1,7 +1,7 @@
 // login command
 
-import { authorize, isAuthorized, getUserEmail } from '../auth.js';
-import { MESSAGES } from '../messages.js';
+import { authorize, isAuthorized, getUserEmail } from '../auth';
+import { MESSAGES } from '../messages';
 
 // Type definition for command options in login
 type CommandOptions = {
