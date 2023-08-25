@@ -23,10 +23,10 @@ import { google } from 'googleapis';
 import { OAuth2Client } from 'google-auth-library';
 import path from 'path';
 
-import { authorize, isAuthorized } from '../auth.js';
-import { Config, CONFIG_FILE_NAME } from '../constants.js';
-import { MESSAGES } from '../messages.js';
-import { C2gError } from '../c2g-error.js';
+import { authorize, isAuthorized } from '../auth';
+import { Config, CONFIG_FILE_NAME } from '../constants';
+import { MESSAGES } from '../messages';
+import { C2gError } from '../c2g-error';
 
 interface CommandOptions {
   readonly browse?: boolean;
@@ -39,7 +39,7 @@ interface CommandOptions {
  * @param configFilePath The path to the configuration file
  * @returns The contents of the configuration file as an object
  */
-function readConfigFileSync(configFilePath: string): Config {
+export function readConfigFileSync(configFilePath: string): Config {
   // Check if the configFilePath is a valid path
   if (!fs.existsSync(configFilePath)) {
     throw new C2gError(MESSAGES.error.c2gErrorConfigFileNotFound);
@@ -60,18 +60,18 @@ function readConfigFileSync(configFilePath: string): Config {
  * It is done in the main function, after the authorization is complete.
  * @param configObj The contents of the configuration file as an object
  */
-function validateConfig(configObj: Config): Config {
+export function validateConfig(configObj: Config): Config {
   // Check if the configObj conforms with the Config type
   if (
-    configObj.sourceDir &&
-    configObj.targetDriveFolderId &&
-    configObj.updateExistingGoogleSheets &&
-    configObj.saveOriginalFilesToDrive
+    'sourceDir' in configObj &&
+    'targetDriveFolderId' in configObj &&
+    'updateExistingGoogleSheets' in configObj &&
+    'saveOriginalFilesToDrive' in configObj
   ) {
     // Check configObj for data types
     // If sourceDir is not a string, return false
     if (typeof configObj.sourceDir !== 'string') {
-      throw new TypeError('');
+      throw new TypeError(MESSAGES.error.typeErrorSourceDirMustBeString);
     }
     // If targetDriveFolderId is not a string, return false
     if (typeof configObj.targetDriveFolderId !== 'string') {
@@ -102,6 +102,32 @@ function validateConfig(configObj: Config): Config {
   }
 }
 
+/**
+ * Get the full path of each CSV file in the given directory and return them as an array.
+ * @param sourceDir The path to the source directory to look for CSV files
+ * @returns An array of full paths of CSV files in the source directory
+ */
+export function getCsvFilePaths(sourceDir: string): string[] {
+  // Read the contents of sourceDir and check if there are any CSV files with the extension of .csv
+  const csvFiles = [];
+  const sourceDirLower = sourceDir.toLowerCase();
+  if (sourceDirLower.endsWith('.csv')) {
+    // If sourceDir is a single CSV file, simply add it to csvFiles
+    // Note that the value of sourceDir should be processed through validateConfig() before calling this function
+    csvFiles.push(sourceDir);
+  } else {
+    // If sourceDir is a directory containing CSV files, add the full path of each CSV file to csvFiles
+    const files = fs.readdirSync(sourceDir);
+    files.forEach((file) => {
+      const fileLower = file.toLowerCase();
+      if (fileLower.endsWith('.csv')) {
+        csvFiles.push(path.join(sourceDir, file));
+      }
+    });
+  }
+  return csvFiles;
+}
+
 export default async function (options: CommandOptions): Promise<void> {
   console.log('running convert. options:', options); // [test]
   // Checks if the user is already logged in
@@ -118,27 +144,12 @@ export default async function (options: CommandOptions): Promise<void> {
   // Authorize the user
   const auth = await authorize();
 
-  // Read the contents of sourceDir and check if there are any CSV files with the extension of .csv
-  const csvFiles = [];
-  if (config.sourceDir.endsWith('.csv')) {
-    // If sourceDir is a single CSV file, simply add it to csvFiles
-    // Note that the value of config.sourceDir is already validated in validateConfig()
-    csvFiles.push(config.sourceDir);
-  } else {
-    // If sourceDir is a directory containing CSV files, add the full path of each CSV file to csvFiles
-    const files = fs.readdirSync(config.sourceDir);
-    files.forEach((file) => {
-      const fileLower = file.toLowerCase();
-      if (fileLower.endsWith('.csv')) {
-        csvFiles.push(path.join(config.sourceDir, file));
-      }
-    });
-  }
-  // If there are no CSV files, exit the program with a message
+  // Get the full path of each CSV file in the source directory
+  const csvFiles = getCsvFilePaths(config.sourceDir);
   if (csvFiles.length === 0) {
+    // If there are no CSV files, exit the program with a message
     throw new C2gError(MESSAGES.error.c2gErrorNoCsvFilesFound);
   }
-
   csvFiles.forEach((csvFile) => {
     // Read contents of each .csv files.
     // For each file, check if there is an existing Google Sheets file with the same name in the target Google Drive folder
