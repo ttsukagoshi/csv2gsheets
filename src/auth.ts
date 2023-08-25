@@ -7,13 +7,9 @@ import { authenticate } from '@google-cloud/local-auth';
 import { google } from 'googleapis';
 import { OAuth2Client } from 'google-auth-library';
 
-import {
-  CREDENTIALS_FILE_NAME,
-  TOKEN_FILE_NAME,
-  HOME_DIR,
-} from './constants.js';
-import { MESSAGES } from './messages.js';
-import { C2gError } from './c2g-error.js';
+import { CREDENTIALS_FILE_NAME, TOKEN_FILE_NAME, HOME_DIR } from './constants';
+import { MESSAGES } from './messages';
+import { C2gError } from './c2g-error';
 
 // OAuth Scopes
 const SCOPES = [
