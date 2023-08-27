@@ -1,6 +1,7 @@
-/* eslint-disable @typescript-eslint/no-unsafe-call */
+// Jest test for the login command in ./src/commands/login.ts
+
 import login from '../src/commands/login';
-import { authorize, isAuthorized, getUserEmail } from '../src/auth';
+import * as auth from '../src/auth';
 import { MESSAGES } from '../src/messages';
 
 jest.mock('../src/auth');
@@ -12,68 +13,42 @@ describe('login', () => {
 
   it('should call authorize if options.status is not true', async () => {
     await login();
-    expect(authorize).toHaveBeenCalledTimes(1);
+    expect(auth.authorize).toHaveBeenCalledTimes(1);
   });
 
-  it('should not call authorize if options.status is true', async () => {
-    await login({ status: true });
-    expect(authorize).not.toHaveBeenCalled();
-  });
-
-  it('should call isAuthorized and getUserEmail if options.status is true and the user is authorized', async () => {
-    const email = 'test@example.com';
+  it('should not call authorize and should call isAuthorized if options.status is true', async () => {
+    const mockedAuth = auth as jest.Mocked<typeof auth>;
+    mockedAuth.isAuthorized.mockReturnValue(false);
     jest.spyOn(console, 'info').mockImplementation();
-    isAuthorized.mockReturnValue(true);
-    getUserEmail.mockResolvedValue(email);
     await login({ status: true });
-    expect(isAuthorized).toHaveBeenCalledTimes(1);
-    expect(getUserEmail).toHaveBeenCalledTimes(1);
-    expect(console.info).toHaveBeenCalledWith(
-      MESSAGES.log.youAreLoggedInAs(email),
-    );
-  });
-  /*
-  it('should call isAuthorized if options.status is true', async () => {
-    const isAuthorizedMock = jest.fn();
-    isAuthorized.mockImplementation(isAuthorizedMock);
-    await login({ status: true });
-    expect(isAuthorizedMock).toHaveBeenCalledTimes(1);
-  });
-
-  it('should call getUserEmail if isAuthorized returns true', async () => {
-    const getUserEmailMock = jest.fn();
-    getUserEmail.mockImplementation(getUserEmailMock);
-    mocked(isAuthorized).mockReturnValue(true);
-    await login({ status: true });
-    expect(getUserEmailMock).toHaveBeenCalledTimes(1);
+    expect(auth.authorize).not.toHaveBeenCalled();
+    expect(auth.isAuthorized).toHaveBeenCalledTimes(1);
+    // should log the "not logged in" message
+    expect(console.info).toHaveBeenCalledWith(MESSAGES.log.youAreNotLoggedIn);
   });
 
   it('should log the user email if isAuthorized returns true and getUserEmail returns a value', async () => {
     const email = 'test@example.com';
-    mocked(isAuthorized).mockReturnValue(true);
-    mocked(getUserEmail).mockResolvedValue(email);
-    const consoleInfoMock = jest.spyOn(console, 'info').mockImplementation();
+    const mockedAuth = auth as jest.Mocked<typeof auth>;
+    jest.spyOn(console, 'info').mockImplementation();
+    mockedAuth.isAuthorized.mockReturnValue(true);
+    mockedAuth.getUserEmail.mockResolvedValue(email);
     await login({ status: true });
-    expect(consoleInfoMock).toHaveBeenCalledWith(
-      `You are logged in as ${email}`,
+    expect(auth.getUserEmail).toHaveBeenCalledTimes(1);
+    expect(console.info).toHaveBeenCalledWith(
+      MESSAGES.log.youAreLoggedInAs(email),
     );
   });
 
-  it('should log a message if isAuthorized returns true and getUserEmail returns undefined', async () => {
-    mocked(isAuthorized).mockReturnValue(true);
-    mocked(getUserEmail).mockResolvedValue(undefined);
-    const consoleInfoMock = jest.spyOn(console, 'info').mockImplementation();
+  it('should log as UNKNOWN if isAuthorized returns true and getUserEmail returns a nullish value', async () => {
+    const email = null;
+    const mockedAuth = auth as jest.Mocked<typeof auth>;
+    jest.spyOn(console, 'info').mockImplementation();
+    mockedAuth.isAuthorized.mockReturnValue(true);
+    mockedAuth.getUserEmail.mockResolvedValue(email);
     await login({ status: true });
-    expect(consoleInfoMock).toHaveBeenCalledWith(
-      'You are logged in as UNKNOWN',
+    expect(console.info).toHaveBeenCalledWith(
+      MESSAGES.log.youAreLoggedInAs('UNKNOWN'),
     );
   });
-
-  it('should log a message if isAuthorized returns false', async () => {
-    mocked(isAuthorized).mockReturnValue(false);
-    const consoleInfoMock = jest.spyOn(console, 'info').mockImplementation();
-    await login({ status: true });
-    expect(consoleInfoMock).toHaveBeenCalledWith('You are not logged in');
-  });
-  */
 });
