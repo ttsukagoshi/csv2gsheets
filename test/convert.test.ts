@@ -1,3 +1,5 @@
+// Jest test for the convert command in ./src/commands/convert.ts
+
 import fs from 'fs';
 import path from 'path';
 import { Config } from '../src/constants';
