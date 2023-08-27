@@ -28,7 +28,7 @@ import { Config, CONFIG_FILE_NAME } from '../constants';
 import { MESSAGES } from '../messages';
 import { C2gError } from '../c2g-error';
 
-interface CommandOptions {
+interface ConvertCommandOptions {
   readonly browse?: boolean;
   readonly configFilePath?: string;
   readonly dryRun?: boolean;
@@ -128,7 +128,9 @@ export function getCsvFilePaths(sourceDir: string): string[] {
   return csvFiles;
 }
 
-export default async function (options: CommandOptions): Promise<void> {
+export default async function convert(
+  options: ConvertCommandOptions,
+): Promise<void> {
   console.log('running convert. options:', options); // [test]
   // Checks if the user is already logged in
   if (!isAuthorized()) {
