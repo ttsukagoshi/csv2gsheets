@@ -18,54 +18,59 @@ interface Question {
   validate?: (value: string) => boolean | string;
   default?: boolean;
 }
+
 interface InquirerInitOverwriteResponse {
   overwrite: boolean;
 }
 
-// Define the questions to be asked
-const questions: Question[] = [
-  {
-    name: 'sourceDir',
-    type: 'input',
-    message: MESSAGES.prompt.enterSourceDir,
-    validate: (value: string) => {
-      if (fs.existsSync(value)) {
-        return true;
-      } else {
-        return MESSAGES.prompt.enterValidPath;
-      }
-    },
-  },
-  {
-    name: 'targetDriveFolderId',
-    type: 'input',
-    message: MESSAGES.prompt.enterTargetDriveFolderId,
-    validate: (value: string) => {
-      if (value.length) {
-        return true;
-      } else {
-        return MESSAGES.prompt.enterValidId;
-      }
-    },
-  },
-  {
-    name: 'updateExistingGoogleSheets',
-    type: 'confirm',
-    message: MESSAGES.prompt.updateExistingGoogleSheetsYN,
-    default: false,
-  },
-  {
-    name: 'saveOriginalFilesToDrive',
-    type: 'confirm',
-    message: MESSAGES.prompt.saveOriginalFilesToDriveYN,
-    default: true,
-  },
-];
+interface CommandOptions {
+  readonly login?: boolean;
+}
 
 /**
  * Creates a config file in the current directory based on user input
  */
 async function createConfigFile(): Promise<void> {
+  // Define the questions to be asked
+  const questions: Question[] = [
+    {
+      name: 'sourceDir',
+      type: 'input',
+      message: MESSAGES.prompt.enterSourceDir,
+      validate: (value: string) => {
+        if (fs.existsSync(value)) {
+          return true;
+        } else {
+          return MESSAGES.prompt.enterValidPath;
+        }
+      },
+    },
+    {
+      name: 'targetDriveFolderId',
+      type: 'input',
+      message: MESSAGES.prompt.enterTargetDriveFolderId,
+      validate: (value: string) => {
+        if (value.length) {
+          return true;
+        } else {
+          return MESSAGES.prompt.enterValidId;
+        }
+      },
+    },
+    {
+      name: 'updateExistingGoogleSheets',
+      type: 'confirm',
+      message: MESSAGES.prompt.updateExistingGoogleSheetsYN,
+      default: false,
+    },
+    {
+      name: 'saveOriginalFilesToDrive',
+      type: 'confirm',
+      message: MESSAGES.prompt.saveOriginalFilesToDriveYN,
+      default: true,
+    },
+  ];
+
   // Prompt the user for input
   const answers = (await inquirer.prompt(questions)) as Config;
 
@@ -75,10 +80,6 @@ async function createConfigFile(): Promise<void> {
     JSON.stringify(answers, null, 2),
   );
 }
-
-type CommandOptions = {
-  readonly login?: boolean;
-};
 
 /**
  * Create a config file `c2g.config.json` in the current directory.
