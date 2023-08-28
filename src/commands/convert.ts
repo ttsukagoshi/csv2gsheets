@@ -19,8 +19,7 @@
 // Use the googleapis package to access Google Drive and Google Sheets
 
 import fs from 'fs';
-import { google } from 'googleapis';
-import { OAuth2Client } from 'google-auth-library';
+// import { google } from 'googleapis';
 import path from 'path';
 
 import { authorize, isAuthorized } from '../auth';
@@ -132,20 +131,26 @@ export default async function convert(
   options: ConvertCommandOptions,
 ): Promise<void> {
   console.log('running convert. options:', options); // [test]
+
   // Checks if the user is already logged in
   if (!isAuthorized()) {
     throw new C2gError(MESSAGES.error.c2gErrorNotLoggedIn);
   }
-  // If configFilePath is not specified, use the CONFIG_FILE_NAME in the current working directory
+  // If configFilePath is not specified in the options, use the CONFIG_FILE_NAME in the current working directory
   const configFilePath = options.configFilePath
     ? options.configFilePath
     : path.join(process.cwd(), CONFIG_FILE_NAME);
   // Read the configuration file and validate its contents
   const config = validateConfig(readConfigFileSync(configFilePath));
-  console.log('config:', config); // [test]
-  // Authorize the user
-  const auth = await authorize();
 
+  console.log('config:', config); // [test]
+
+  // Authorize the user
+
+  const auth = await authorize();
+  console.log('auth:', auth); // [test]
+
+  /*
   // Get the full path of each CSV file in the source directory
   const csvFiles = getCsvFilePaths(config.sourceDir);
   if (csvFiles.length === 0) {
@@ -166,4 +171,5 @@ export default async function convert(
         : `https://drive.google.com/drive/folders/${config.targetDriveFolderId}`;
     open(url);
   }
+  */
 }
