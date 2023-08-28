@@ -19,7 +19,8 @@
 // Use the googleapis package to access Google Drive and Google Sheets
 
 import fs from 'fs';
-// import { google } from 'googleapis';
+import { google } from 'googleapis';
+// import { OAuth2Client } from 'google-auth-library';
 import path from 'path';
 
 import { authorize, isAuthorized } from '../auth';
@@ -78,6 +79,12 @@ export function validateConfig(configObj: Config): Config {
         MESSAGES.error.typeErrorTargetDriveFolderIdMustBeString,
       );
     }
+    // If targetIsSharedDrive is not a boolean, return false
+    if (typeof configObj.targetIsSharedDrive !== 'boolean') {
+      throw new TypeError(
+        MESSAGES.error.typeErrorTargetIsSharedDriveMustBeBoolean,
+      );
+    }
     // If updateExistingGoogleSheets is not a boolean, return false
     if (typeof configObj.updateExistingGoogleSheets !== 'boolean') {
       throw new TypeError(
@@ -97,7 +104,7 @@ export function validateConfig(configObj: Config): Config {
     }
     return configObj;
   } else {
-    throw new C2gError(MESSAGES.error.c2gErrorConfigFileMustContain4Properties);
+    throw new C2gError(MESSAGES.error.c2gErrorConfigFileMustContain5Properties);
   }
 }
 
@@ -146,9 +153,17 @@ export default async function convert(
   console.log('config:', config); // [test]
 
   // Authorize the user
-
   const auth = await authorize();
-  console.log('auth:', auth); // [test]
+  // console.log('auth:', auth); // [test]
+
+  // Use the Drive API to get the metadata of the target Google Drive folder
+  const drive = google.drive({ version: 'v3', auth });
+  const driveFolder = await drive.files.get({
+    supportsAllDrives: true,
+    fileId: config.targetDriveFolderId,
+    fields: 'id, name, mimeType, parents',
+  });
+  console.log('driveFolder:', driveFolder); // [test]
 
   /*
   // Get the full path of each CSV file in the source directory
