@@ -5,7 +5,7 @@ import loudRejection from 'loud-rejection';
 import { program } from 'commander';
 
 // Local imports
-import { C2gError } from './c2g-error.js';
+import { C2gError } from './c2g-error';
 import { PACKAGE_JSON } from './package';
 import { spinner, stopSpinner } from './utils';
 
