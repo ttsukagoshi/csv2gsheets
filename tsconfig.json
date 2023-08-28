@@ -10,6 +10,10 @@
     // "rootDir": "./", /* Specify the root folder within your source files. */
     "moduleResolution": "node" /* Specify how TypeScript looks up a file from a given module specifier. */,
     "resolveJsonModule": true /* Enable importing .json files. */,
+    "baseUrl": "./",
+    "paths": {
+      "*": ["node_modules/*", "src/*.ts", "src/commands/*.ts"]
+    },
 
     /* JavaScript Support */
     "allowJs": true /* Allow JavaScript files to be a part of your program. Use the 'checkJS' option to get errors from these files. */,
