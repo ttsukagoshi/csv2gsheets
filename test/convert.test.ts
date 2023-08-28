@@ -21,6 +21,7 @@ describe('readConfigFileSync', () => {
     const config = {
       sourceDir: '/path/to/source',
       targetDriveFolderId: '12345',
+      targetIsSharedDrive: true,
       updateExistingGoogleSheets: true,
       saveOriginalFilesToDrive: false,
     };
@@ -58,6 +59,7 @@ describe('validateConfig', () => {
     const config = {
       sourceDir: testDir,
       targetDriveFolderId: '12345',
+      targetIsSharedDrive: true,
       updateExistingGoogleSheets: true,
       saveOriginalFilesToDrive: false,
     };
@@ -68,6 +70,7 @@ describe('validateConfig', () => {
     const config = {
       sourceDir: 123,
       targetDriveFolderId: '12345',
+      targetIsSharedDrive: true,
       updateExistingGoogleSheets: true,
       saveOriginalFilesToDrive: false,
     } as unknown as Config;
@@ -78,6 +81,18 @@ describe('validateConfig', () => {
     const config = {
       sourceDir: '/path/to/source',
       targetDriveFolderId: 123,
+      targetIsSharedDrive: true,
+      updateExistingGoogleSheets: true,
+      saveOriginalFilesToDrive: false,
+    } as unknown as Config;
+    expect(() => validateConfig(config)).toThrow(TypeError);
+  });
+
+  it('should throw an error if targetIsSharedDrive is not a boolean', () => {
+    const config = {
+      sourceDir: '/path/to/source',
+      targetDriveFolderId: '12345',
+      targetIsSharedDrive: 'true',
       updateExistingGoogleSheets: true,
       saveOriginalFilesToDrive: false,
     } as unknown as Config;
@@ -88,6 +103,7 @@ describe('validateConfig', () => {
     const config = {
       sourceDir: '/path/to/source',
       targetDriveFolderId: '12345',
+      targetIsSharedDrive: true,
       updateExistingGoogleSheets: 'true',
       saveOriginalFilesToDrive: false,
     } as unknown as Config;
@@ -98,6 +114,7 @@ describe('validateConfig', () => {
     const config = {
       sourceDir: '/path/to/source',
       targetDriveFolderId: '12345',
+      targetIsSharedDrive: true,
       updateExistingGoogleSheets: true,
       saveOriginalFilesToDrive: 'false',
     } as unknown as Config;
@@ -108,13 +125,14 @@ describe('validateConfig', () => {
     const config = {
       sourceDir: '/path/to/nonexistent/directory',
       targetDriveFolderId: '12345',
+      targetIsSharedDrive: true,
       updateExistingGoogleSheets: true,
       saveOriginalFilesToDrive: false,
     };
     expect(() => validateConfig(config)).toThrow(C2gError);
   });
 
-  it('should throw an error if the config object does not contain 4 properties', () => {
+  it('should throw an error if the config object does not contain 5 properties', () => {
     const config = {
       sourceDir: testDir,
       targetDriveFolderId: '12345',
