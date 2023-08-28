@@ -8,12 +8,14 @@ export const MESSAGES = {
       'The value of sourceDir in the configuration file must be a string.',
     typeErrorTargetDriveFolderIdMustBeString:
       'The value of targetDriveFolderId in the configuration file must be a string.',
+    typeErrorTargetIsSharedDriveMustBeBoolean:
+      'The value of targetIsSharedDrive in the configuration file must be a boolean, i.e., it must be either true or false.',
     typeErrorUpdateExistingGoogleSheetsMustBeBoolean:
       'The value of updateExistingGoogleSheets in the configuration file must be a boolean, i.e., it must be either true or false.',
     typeErrorSaveOriginalFilesToDriveMustBeBoolean:
       'The value of saveOriginalFilesToDrive in the configuration file must be a boolean, i.e., it must be either true or false.',
-    c2gErrorConfigFileMustContain4Properties:
-      'The configuration file must contain the following four properties: sourceDir, targetDriveFolderId, updateExistingGoogleSheets, and saveOriginalFilesToDrive.',
+    c2gErrorConfigFileMustContain5Properties:
+      'The configuration file must contain the following five properties: sourceDir, targetDriveFolderId, updateExistingGoogleSheets, and saveOriginalFilesToDrive.',
     c2gErrorConfigFileNotFound:
       'Enter a valid path for the configuration file. You can create a new one by running the command `c2g init`.',
     c2gErrorCredentialsFileNotFound: `${CREDENTIALS_FILE_NAME} not found.`,
@@ -35,13 +37,15 @@ export const MESSAGES = {
       'Enter the full path of the folder in which your CSV files are located.',
     enterTargetDriveFolderId:
       'Enter the ID of the Google Drive folder to which you want to upload your CSV files.',
-    enterValidId: 'Please enter a valid ID.',
+    enterValidId:
+      'Please enter a valid ID. If you want to target the root folder in My Drive, enter "root".',
     enterValidPath: 'Please enter a valid path.',
     overwriteExistingConfigFileYN:
-      'A config file already exists in this directory. Do you want to overwrite it? (y/n)',
+      'A config file already exists in this directory. Do you want to overwrite it?',
     saveOriginalFilesToDriveYN:
-      'Do you want to save the original CSV files to Google Drive? (y/n)',
+      'Do you want to save the original CSV files to Google Drive?',
+    targetIsSharedDriveYN: 'Is the target folder a Shared Drive?',
     updateExistingGoogleSheetsYN:
-      'Do you want to update existing Google Sheets files? (y/n)',
+      'Do you want to update existing Google Sheets files?',
   },
 };
