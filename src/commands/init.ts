@@ -121,7 +121,6 @@ export default async function init(
     if (!isAuthorized()) {
       console.info(MESSAGES.log.loggingIn);
       await login();
-      await login({ status: true });
     }
   }
 }

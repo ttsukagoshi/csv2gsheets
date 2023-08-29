@@ -11,9 +11,17 @@ describe('login', () => {
     jest.clearAllMocks();
   });
 
-  it('should call authorize if options.status is not true', async () => {
+  it('should call authorize and getUserEmail if options.status is not true', async () => {
+    const email = 'test@example.com';
+    const mockedAuth = auth as jest.Mocked<typeof auth>;
+    mockedAuth.getUserEmail.mockResolvedValue(email);
+    jest.spyOn(console, 'info').mockImplementation();
     await login();
     expect(auth.authorize).toHaveBeenCalledTimes(1);
+    expect(auth.getUserEmail).toHaveBeenCalledTimes(1);
+    expect(console.info).toHaveBeenCalledWith(
+      MESSAGES.log.youAreLoggedInAs(email),
+    );
   });
 
   it('should not call authorize and should call isAuthorized if options.status is true', async () => {
