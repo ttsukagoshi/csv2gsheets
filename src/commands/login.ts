@@ -25,5 +25,7 @@ export default async function login(options?: CommandOptions): Promise<void> {
   } else {
     // Authorize the user
     await authorize();
+    const email = await getUserEmail();
+    console.info(MESSAGES.log.youAreLoggedInAs(email ? email : 'UNKNOWN'));
   }
 }
