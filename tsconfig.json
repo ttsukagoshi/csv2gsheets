@@ -34,5 +34,5 @@
     "skipLibCheck": true /* Skip type checking all .d.ts files. */
   },
   "include": ["src/**/*", "test/**/*", "*.ts", "*.js"],
-  "exclude": ["build", "node_modules", "jest.config.ts", "build-replace.js"]
+  "exclude": ["build", "node_modules", "jest.config.ts"]
 }
