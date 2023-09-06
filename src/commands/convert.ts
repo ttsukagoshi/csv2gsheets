@@ -137,10 +137,9 @@ export function getCsvFilePaths(sourceDir: string): string[] {
 export default async function convert(
   options: ConvertCommandOptions,
 ): Promise<void> {
-  console.log('running convert. options:', options); // [test]
-
-  // Checks if the user is already logged in
-  if (!isAuthorized()) {
+  if (!options.dryRun && !isAuthorized()) {
+    // If the --dry-run option is NOT specified and the user is NOT logged in,
+    // exit the program with an error message
     throw new C2gError(MESSAGES.error.c2gErrorNotLoggedIn);
   }
   // If configFilePath is not specified in the options, use the CONFIG_FILE_NAME in the current working directory
@@ -154,29 +153,96 @@ export default async function convert(
 
   // Authorize the user
   const auth = await authorize();
-  // console.log('auth:', auth); // [test]
 
-  // Use the Drive API to get the metadata of the target Google Drive folder
   const drive = google.drive({ version: 'v3', auth });
+  /*
+  // [TEST] Use the Drive API to get the metadata of the target Google Drive folder
   const driveFolder = await drive.files.get({
-    supportsAllDrives: true,
+    supportsAllDrives: config.targetIsSharedDrive,
     fileId: config.targetDriveFolderId,
     fields: 'id, name, mimeType, parents',
   });
   console.log('driveFolder:', driveFolder); // [test]
+  */
 
-  /*
   // Get the full path of each CSV file in the source directory
   const csvFiles = getCsvFilePaths(config.sourceDir);
   if (csvFiles.length === 0) {
     // If there are no CSV files, exit the program with a message
     throw new C2gError(MESSAGES.error.c2gErrorNoCsvFilesFound);
   }
-  csvFiles.forEach((csvFile) => {
-    // Read contents of each .csv files.
-    // For each file, check if there is an existing Google Sheets file with the same name in the target Google Drive folder
-    // [TO-DO] If it exists, and the value of config.updateExistingGoogleSheets is true, update the existing Google Sheets file; if not, create a new Google Sheets file
-  });
+  // Based on csvFiles, search the Google Drive folder for existing Google Sheets files with the same name
+  //
+
+  for (const csvFile of csvFiles) {
+    if (!options.dryRun) {
+      // When the --dry-run option is NOT specified, upload the CSV file to Google Drive
+      // First, read the CSV file
+      const csvData = fs.createReadStream(csvFile);
+      if (condition) {
+        // Create a Google Sheets file from the CSV file
+        await drive.files.create({
+          supportsAllDrives: config.targetIsSharedDrive,
+          requestBody: {
+            name: path.basename(csvFile),
+            mimeType: 'application/vnd.google-apps.spreadsheet',
+            parents: [config.targetDriveFolderId],
+          },
+          media: {
+            mimeType: 'text/csv',
+            body: csvData,
+          },
+        });
+      }
+      if (config.saveOriginalFilesToDrive) {
+        // If saveOriginalFilesToDrive is true, upload the original CSV file to Google Drive as well
+        // The CSV file should be uploaded to the "csv" folder in the target Google Drive folder
+        let targetCsvFolderId = '';
+        // First, check if the "csv" folder exists
+        const csvFolder = await drive.files.list({
+          supportsAllDrives: config.targetIsSharedDrive,
+          q: `name = 'csv' and '${config.targetDriveFolderId}' in parents and mimeType = 'application/vnd.google-apps.folder'`,
+          fields: 'files(id, name, mimeType, parents)',
+        });
+        console.log('csvFolder:', csvFolder); // [test]
+        // If the "csv" folder does not exist, create it
+        if (!csvFolder.data?.files || csvFolder.data.files.length === 0) {
+          const newCsvFolder = await drive.files.create({
+            supportsAllDrives: config.targetIsSharedDrive,
+            requestBody: {
+              name: 'csv',
+              mimeType: 'application/vnd.google-apps.folder',
+              parents: [config.targetDriveFolderId],
+            },
+          });
+          console.log('newCsvFolder:', newCsvFolder); // [test]
+          if (!newCsvFolder.data.id) {
+            throw new C2gError(MESSAGES.error.c2gErrorFailedToCreateCsvFolder);
+          }
+          targetCsvFolderId = newCsvFolder.data.id;
+        } else {
+          // If the "csv" folder exists, use its ID
+          targetCsvFolderId = csvFolder.data.files[0].id as string;
+        }
+        // Upload the CSV file to the "csv" folder
+        await drive.files.create({
+          supportsAllDrives: config.targetIsSharedDrive,
+          requestBody: {
+            name: path.basename(csvFile),
+            mimeType: 'text/csv',
+            parents: [targetCsvFolderId],
+          },
+          media: {
+            mimeType: 'text/csv',
+            body: csvData,
+          },
+        });
+      }
+    } else {
+      // When on dry run, just log the file name without uploading it
+      console.info('[Dry Run] Source CSV: ', csvFile);
+    }
+  }
 
   // Open the target Google Drive folder in the default browser if the --browse option is specified
   if (options.browse) {
@@ -186,5 +252,4 @@ export default async function convert(
         : `https://drive.google.com/drive/folders/${config.targetDriveFolderId}`;
     open(url);
   }
-  */
 }
