@@ -24,6 +24,16 @@ describe('login', () => {
     );
   });
 
+  it('should log as UNKNOWN if options.status is not true and getUserEmail returns a nullish value', async () => {
+    const mockedAuth = auth as jest.Mocked<typeof auth>;
+    mockedAuth.getUserEmail.mockResolvedValue(null);
+    jest.spyOn(console, 'info').mockImplementation();
+    await login();
+    expect(console.info).toHaveBeenCalledWith(
+      MESSAGES.log.youAreLoggedInAs('UNKNOWN'),
+    );
+  });
+
   it('should not call authorize and should call isAuthorized if options.status is true', async () => {
     const mockedAuth = auth as jest.Mocked<typeof auth>;
     mockedAuth.isAuthorized.mockReturnValue(false);
@@ -49,11 +59,10 @@ describe('login', () => {
   });
 
   it('should log as UNKNOWN if isAuthorized returns true and getUserEmail returns a nullish value', async () => {
-    const email = null;
     const mockedAuth = auth as jest.Mocked<typeof auth>;
     jest.spyOn(console, 'info').mockImplementation();
     mockedAuth.isAuthorized.mockReturnValue(true);
-    mockedAuth.getUserEmail.mockResolvedValue(email);
+    mockedAuth.getUserEmail.mockResolvedValue(null);
     await login({ status: true });
     expect(console.info).toHaveBeenCalledWith(
       MESSAGES.log.youAreLoggedInAs('UNKNOWN'),
