@@ -14,6 +14,7 @@ export const HOME_DIR = homedir();
 export interface Config {
   sourceDir: string;
   targetDriveFolderId: string;
+  targetIsSharedDrive: boolean;
   updateExistingGoogleSheets: boolean;
   saveOriginalFilesToDrive: boolean;
 }

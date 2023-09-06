@@ -17,8 +17,9 @@
     "build/src"
   ],
   "scripts": {
-    "build": "npx tsc",
-    "test": "jest"
+    "postbuild": "node build-replace.js",
+    "build": "npx tsc && npm run postbuild",
+    "test": "npm run build && jest"
   },
   "repository": {
     "type": "git",
@@ -26,7 +27,7 @@
   },
   "keywords": [
     "google-sheets",
-    "excel",
+    "csv",
     "google-drive-api",
     "cli"
   ],

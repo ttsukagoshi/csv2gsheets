@@ -1,12 +1,12 @@
 // login command
 
-import { authorize, isAuthorized, getUserEmail } from '../auth.js';
-import { MESSAGES } from '../messages.js';
+import { authorize, isAuthorized, getUserEmail } from '../auth';
+import { MESSAGES } from '../messages';
 
 // Type definition for command options in login
-type CommandOptions = {
+interface CommandOptions {
   readonly status?: boolean;
-};
+}
 
 /**
  * Authorize the user.
@@ -25,5 +25,7 @@ export default async function login(options?: CommandOptions): Promise<void> {
   } else {
     // Authorize the user
     await authorize();
+    const email = await getUserEmail();
+    console.info(MESSAGES.log.youAreLoggedInAs(email ? email : 'UNKNOWN'));
   }
 }
