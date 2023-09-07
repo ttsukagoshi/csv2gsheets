@@ -11,8 +11,8 @@ export const spinner = ora(); // New spinner instance
 /**
  * Stop the spinner if it is running
  */
-export const stopSpinner = (): void => {
+export function stopSpinner(): void {
   if (spinner.isSpinning) {
     spinner.stop();
   }
-};
+}
