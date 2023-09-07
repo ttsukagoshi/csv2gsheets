@@ -4,7 +4,7 @@ import { authorize, isAuthorized, getUserEmail } from '../auth';
 import { MESSAGES } from '../messages';
 
 // Type definition for command options in login
-interface CommandOptions {
+interface LoginCommandOptions {
   readonly status?: boolean;
 }
 
@@ -13,7 +13,9 @@ interface CommandOptions {
  * If the option "status" is true, return the current user name
  * or a message that the user is not logged in.
  */
-export default async function login(options?: CommandOptions): Promise<void> {
+export default async function login(
+  options?: LoginCommandOptions,
+): Promise<void> {
   if (options?.status) {
     if (isAuthorized()) {
       const email = await getUserEmail();
