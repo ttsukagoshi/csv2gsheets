@@ -148,7 +148,17 @@ export default async function convert(
   // Read the configuration file and validate its contents
   const config = validateConfig(readConfigFileSync(configFilePath));
 
-  console.log('config:', config); // [test]
+  // Show message on the console
+  let convertingCsvWithFollowingSettings =
+    MESSAGES.log.convertingCsvWithFollowingSettings(
+      Object.keys(config)
+        .map((key) => `${key}: ${config[key as keyof Config]}`)
+        .join('\n'),
+    );
+  convertingCsvWithFollowingSettings = options.dryRun
+    ? `${MESSAGES.log.runningOnDryRun}\n${convertingCsvWithFollowingSettings}`
+    : convertingCsvWithFollowingSettings;
+  console.info(convertingCsvWithFollowingSettings);
 
   // Authorize the user
   const auth = await authorize();
