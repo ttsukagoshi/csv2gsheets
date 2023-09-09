@@ -33,6 +33,12 @@
     /* Completeness */
     "skipLibCheck": true /* Skip type checking all .d.ts files. */
   },
-  "include": ["src/**/*", "test/**/*", "jest.config.ts", "build-replace.js"],
+  "include": [
+    "src/**/*",
+    "test/**/*",
+    "jest.config.ts",
+    "faker/**/*",
+    "postbuild/**/*"
+  ],
   "exclude": ["build", "node_modules"]
 }
