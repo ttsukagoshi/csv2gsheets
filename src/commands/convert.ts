@@ -1,37 +1,27 @@
-// Convert local CSV files into Google Sheets files based on the config file c2g.config.json
-// By default, c2g.config.json in the current working directory will be looked for and used in subsequent processing.
-// Alternatively, the path to the configuration file can be specified by the user in the command line option --config-file-path
-// If the config file is not found, the program will exit with an error message.
-
-// The format of the configuration file is defined in src/constants.ts as interface Config
-// The configuration file is validated against this type before being used in subsequent processing.
-// If the configuration file is not valid, the program will exit with an error message.
-// The program will look in the directory specified by sourceDir in Config for Excel files with the extension of .xlsx,
-// upload them to the Google Drive folder specified by targetFolderId in Config,
-// and convert them into Google Sheets files.
-// If the value of the updateExistingGoogleSheets in Config is true, the program will update existing Google Sheets files with the same name.
-// If the value of the updateExistingGoogleSheets in Config is false, the program will create a new Google Sheets file instead.
-// If the value of the targetFolderId in Config is "root", "Root", or "ROOT", the program will use the root folder of the user's Google Drive as its target folder.
-// If the value of the saveOriginalFilesToDrive in Config is true, the program will save the original Excel files to Google Drive as well.
-
-// If the --browse option is specified, the program will open the Google Drive folder in the default browser after the conversion is complete.
-
-// Use the googleapis package to access Google Drive and Google Sheets
+// convert command
 
 import fs from 'fs';
-import { google } from 'googleapis';
-// import { OAuth2Client } from 'google-auth-library';
+import { GaxiosResponse } from 'gaxios';
+import { google, drive_v3 } from 'googleapis';
+import open from 'open';
 import path from 'path';
 
 import { authorize, isAuthorized } from '../auth';
+import { C2gError } from '../c2g-error';
 import { Config, CONFIG_FILE_NAME } from '../constants';
 import { MESSAGES } from '../messages';
-import { C2gError } from '../c2g-error';
 
 interface ConvertCommandOptions {
   readonly browse?: boolean;
   readonly configFilePath?: string;
   readonly dryRun?: boolean;
+}
+
+interface CsvFileObj {
+  name: string;
+  basename: string;
+  path: string;
+  existingSheetsFileId: string | null;
 }
 
 /**
@@ -65,6 +55,7 @@ export function validateConfig(configObj: Config): Config {
   if (
     'sourceDir' in configObj &&
     'targetDriveFolderId' in configObj &&
+    'targetIsSharedDrive' in configObj &&
     'updateExistingGoogleSheets' in configObj &&
     'saveOriginalFilesToDrive' in configObj
   ) {
@@ -113,7 +104,7 @@ export function validateConfig(configObj: Config): Config {
  * @param sourceDir The path to the source directory to look for CSV files
  * @returns An array of full paths of CSV files in the source directory
  */
-export function getCsvFilePaths(sourceDir: string): string[] {
+export function getLocalCsvFilePaths(sourceDir: string): string[] {
   // Read the contents of sourceDir and check if there are any CSV files with the extension of .csv
   const csvFiles = [];
   const sourceDirLower = sourceDir.toLowerCase();
@@ -134,6 +125,81 @@ export function getCsvFilePaths(sourceDir: string): string[] {
   return csvFiles;
 }
 
+/**
+ * Check if the given CSV file name exists in the given Google Drive folder
+ * and return the Google Sheets file ID if it does.
+ * If it doesn't, return null.
+ * @param csvFileName The name of the CSV file
+ * @param existingSheetsFilesObj The object containing the file names of all Google Sheets files in the target Google Drive folder
+ * @returns The Google Sheets file ID if the CSV file name exists in the target Google Drive folder, or null if it doesn't
+ */
+export function getExistingSheetsFileId(
+  csvFileName: string,
+  existingSheetsFilesObj: GaxiosResponse<drive_v3.Schema$FileList>,
+): string | null {
+  if (existingSheetsFilesObj.data?.files) {
+    const existingSheetsFile = existingSheetsFilesObj.data.files.find(
+      (file: drive_v3.Schema$File) => file.name === csvFileName,
+    );
+    return existingSheetsFile?.id ? existingSheetsFile.id : null;
+  } else {
+    return null;
+  }
+}
+
+/**
+ * Get the Google Drive folder ID of the "csv" folder in the target Google Drive folder.
+ * If a folder named "csv" does not exist, create it.
+ * If `config.saveOriginalFilesToDrive` in the given `config` is `false`, return `null`.
+ * @param drive The Google Drive API v3 instance created by `google.drive({ version: 'v3', auth })`
+ * @param config The configuration object defined in `c2g.config.json`
+ * @returns The Google Drive folder ID of the "csv" folder in the target Google Drive folder,
+ * or `null` if the given `config.saveOriginalFilesToDrive` is `false`
+ */
+export async function getCsvFolderId(
+  drive: drive_v3.Drive,
+  config: Config,
+): Promise<string | null> {
+  let csvFolderId: string | null = null;
+  if (config.saveOriginalFilesToDrive) {
+    // First, check if the "csv" folder exists
+    const csvFolderList = await drive.files.list({
+      supportsAllDrives: config.targetIsSharedDrive,
+      q: `name = 'csv' and '${config.targetDriveFolderId}' in parents and mimeType = 'application/vnd.google-apps.folder' and trashed = false`,
+      fields: 'files(id, name)',
+    });
+
+    // If the "csv" folder does not exist, create it
+    if (
+      !csvFolderList.data?.files ||
+      csvFolderList.data.files.length === 0 ||
+      !csvFolderList.data.files[0].id
+    ) {
+      const newCsvFolder = await drive.files.create({
+        supportsAllDrives: config.targetIsSharedDrive,
+        requestBody: {
+          name: 'csv',
+          mimeType: 'application/vnd.google-apps.folder',
+          parents: [config.targetDriveFolderId],
+        },
+      });
+
+      if (!newCsvFolder.data.id) {
+        throw new C2gError(MESSAGES.error.c2gErrorFailedToCreateCsvFolder);
+      }
+      csvFolderId = newCsvFolder.data.id;
+    } else {
+      // If the "csv" folder exists, use its ID
+      csvFolderId = csvFolderList.data.files[0].id;
+    }
+  }
+  return csvFolderId;
+}
+
+/**
+ * The main function of the convert command.
+ * @param options The options passed to the convert command
+ */
 export default async function convert(
   options: ConvertCommandOptions,
 ): Promise<void> {
@@ -156,9 +222,9 @@ export default async function convert(
         .join('\n'),
     );
   convertingCsvWithFollowingSettings = options.dryRun
-    ? `${MESSAGES.log.runningOnDryRun}\n${convertingCsvWithFollowingSettings}`
+    ? `${MESSAGES.log.runningOnDryRun}\n\n${convertingCsvWithFollowingSettings}`
     : convertingCsvWithFollowingSettings;
-  console.info(convertingCsvWithFollowingSettings);
+  console.info(convertingCsvWithFollowingSettings + '\n');
 
   // Authorize the user
   const auth = await authorize();
@@ -167,40 +233,79 @@ export default async function convert(
   // Get the file names of all Google Sheets files in the target Google Drive folder
   const existingSheetsFilesObj = await drive.files.list({
     supportsAllDrives: config.targetIsSharedDrive,
-    q: `'${config.targetDriveFolderId}' in parents and mimeType = 'application/vnd.google-apps.spreadsheet'`,
+    q: `'${config.targetDriveFolderId}' in parents and mimeType = 'application/vnd.google-apps.spreadsheet' and trashed = false`,
     fields: 'files(id, name)',
   });
 
-  console.log(
-    'existingSheetsFiles:',
-    JSON.stringify(existingSheetsFilesObj.data.files),
-  ); // [test]
-
   // Get the full path of each CSV file in the source directory
-  const csvFiles = getCsvFilePaths(config.sourceDir);
+  const csvFiles = getLocalCsvFilePaths(config.sourceDir);
   if (csvFiles.length === 0) {
     // If there are no CSV files, exit the program with a message
     throw new C2gError(MESSAGES.error.c2gErrorNoCsvFilesFound);
   }
 
-  // If config.updateExistingGoogleSheets is true...
-  // [To-Do] Iterate through csvFiles and check existingSheetsFilesObj.data.files for the same file name
-  // [To-Do] Create a mapped array of csvFiles with the corresponding Google Sheets file ID
-  // If config.updateExistingGoogleSheets is false, the ID of the object in the above array will be null
+  // Create an array of objects containing the file name, full path,
+  // and Google Sheets file ID with the same file name (if it exists)
+  // for the respective CSV files
+  const csvFilesObjArray = csvFiles.map((csvFile): CsvFileObj => {
+    const basename = path.basename(csvFile);
+    const fileName = basename.replace(/\.(csv)$/i, '');
+    return {
+      name: fileName,
+      basename: basename,
+      path: csvFile,
+      existingSheetsFileId: config.updateExistingGoogleSheets
+        ? getExistingSheetsFileId(fileName, existingSheetsFilesObj)
+        : null,
+    };
+  });
 
-  for (const csvFile of csvFiles) {
+  // Get the Google Drive folder ID of the "csv" folder in the target Google Drive folder
+  // If the "csv" folder does not exist, create it.
+  const csvFolderId = await getCsvFolderId(drive, config);
+
+  // If config.saveOriginalFilesToDrive is false, csvFolderId will be null
+  if (csvFolderId) {
+    console.info('\n' + MESSAGES.log.uploadingOriginalCsvFilesTo(csvFolderId));
+  }
+
+  for (const csvFileObj of csvFilesObjArray) {
+    // Show the name of the CSV file being processed,
+    // and whether it will update an existing Google Sheets file or create a new one
+    console.info(
+      MESSAGES.log.processingCsvFile(
+        csvFileObj.basename,
+        csvFileObj.existingSheetsFileId,
+      ),
+    );
+
+    // The actual conversion of the CSV file into a Google Sheets file
     if (!options.dryRun) {
-      // When the --dry-run option is NOT specified, upload the CSV file to Google Drive
       // First, read the CSV file
-      const csvData = fs.createReadStream(csvFile);
-      if (config.updateExistingGoogleSheets) {
-        // If updateExistingGoogleSheets is true, update the existing Google Sheets file with the same name
+      const csvData = fs.createReadStream(csvFileObj.path);
+
+      // Depending on the value of config.updateExistingGoogleSheets,
+      // either update an existing Google Sheets file or create a new one.
+      // Create a new Google Sheets file anyway if csvFileObj.existingSheetsFileId is null.
+      if (
+        config.updateExistingGoogleSheets &&
+        csvFileObj.existingSheetsFileId
+      ) {
+        // Update an existing Google Sheets file
+        await drive.files.update({
+          supportsAllDrives: config.targetIsSharedDrive,
+          fileId: csvFileObj.existingSheetsFileId,
+          media: {
+            mimeType: 'text/csv',
+            body: csvData,
+          },
+        });
       } else {
-        // Create a Google Sheets file from the CSV file
+        // Create a new Google Sheets file
         await drive.files.create({
           supportsAllDrives: config.targetIsSharedDrive,
           requestBody: {
-            name: path.basename(csvFile),
+            name: csvFileObj.name,
             mimeType: 'application/vnd.google-apps.spreadsheet',
             parents: [config.targetDriveFolderId],
           },
@@ -210,66 +315,35 @@ export default async function convert(
           },
         });
       }
-      if (config.saveOriginalFilesToDrive) {
-        // If saveOriginalFilesToDrive is true, upload the original CSV file to Google Drive as well
-        // The CSV file should be uploaded to the "csv" folder in the target Google Drive folder
-        let targetCsvFolderId = '';
-        // First, check if the "csv" folder exists
-        const csvFolder = await drive.files.list({
-          supportsAllDrives: config.targetIsSharedDrive,
-          q: `name = 'csv' and '${config.targetDriveFolderId}' in parents and mimeType = 'application/vnd.google-apps.folder'`,
-          fields: 'files(id, name, mimeType, parents)',
-        });
-        console.log('csvFolder:', csvFolder); // [test]
-        // If the "csv" folder does not exist, create it
-        if (
-          !csvFolder.data?.files ||
-          csvFolder.data.files.length === 0 ||
-          !csvFolder.data.files[0].id
-        ) {
-          const newCsvFolder = await drive.files.create({
-            supportsAllDrives: config.targetIsSharedDrive,
-            requestBody: {
-              name: 'csv',
-              mimeType: 'application/vnd.google-apps.folder',
-              parents: [config.targetDriveFolderId],
-            },
-          });
-          console.log('newCsvFolder:', newCsvFolder); // [test]
-          if (!newCsvFolder.data.id) {
-            throw new C2gError(MESSAGES.error.c2gErrorFailedToCreateCsvFolder);
-          }
-          targetCsvFolderId = newCsvFolder.data.id;
-        } else {
-          // If the "csv" folder exists, use its ID
-          targetCsvFolderId = csvFolder.data.files[0].id;
-        }
+
+      if (config.saveOriginalFilesToDrive && csvFolderId) {
         // Upload the CSV file to the "csv" folder
         await drive.files.create({
           supportsAllDrives: config.targetIsSharedDrive,
           requestBody: {
-            name: path.basename(csvFile),
+            name: csvFileObj.basename,
             mimeType: 'text/csv',
-            parents: [targetCsvFolderId],
+            parents: [csvFolderId],
           },
           media: {
             mimeType: 'text/csv',
-            body: csvData,
+            body: fs.createReadStream(csvFileObj.path),
           },
         });
       }
-    } else {
-      // When on dry run, just log the file name without uploading it
-      console.info('[Dry Run] Source CSV: ', csvFile);
     }
+
+    // Show complete message for this file on the console
+    console.info(MESSAGES.log.processingCsvFileComplete);
   }
 
-  // Open the target Google Drive folder in the default browser if the --browse option is specified
   if (options.browse) {
+    // Open the target Google Drive folder in the default browser if the --browse option is specified
     const url =
       config.targetDriveFolderId.toLowerCase() === 'root'
         ? 'https://drive.google.com/drive/my-drive'
         : `https://drive.google.com/drive/folders/${config.targetDriveFolderId}`;
-    open(url);
+    console.info('\n' + MESSAGES.log.openingTargetDriveFolderOnBrowser(url));
+    await open(url);
   }
 }
