@@ -28,8 +28,23 @@ export const MESSAGES = {
       'The value of sourceDir in the configuration file must be a valid path.',
   },
   log: {
+    convertingCsvWithFollowingSettings: (configStr: string) =>
+      `Converting local CSV to Google Sheet with the following settings:\n${configStr}`,
     loggingIn: 'Logging in...',
     noChangesWereMade: 'No changes were made.',
+    openingTargetDriveFolderOnBrowser: (url: string) =>
+      `Opening the target Google Drive folder at ${url}`,
+    processingCsvFile: (
+      fileName: string,
+      existingSheetsFileId: string | null,
+    ) =>
+      `\n${
+        existingSheetsFileId ? 'Updating' : 'Creating'
+      } Google Sheets file from ${fileName}...`,
+    processingCsvFileComplete: 'Done.',
+    runningOnDryRun: 'Running on dry-run mode. No actual changes will be made.',
+    uploadingOriginalCsvFilesTo: (driveFolderId: string) =>
+      `Uploading original CSV files to the following Google Drive folder: https://drive.google.com/drive/folders/${driveFolderId}`,
     youHaveBeenLoggedOut: 'You have been logged out.',
     youAreLoggedInAs: (email: string) => `You are logged in as ${email}.`,
     youAreNotLoggedIn: 'You are not logged in.',

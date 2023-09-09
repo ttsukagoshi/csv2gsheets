@@ -6,7 +6,7 @@ import { Config } from '../src/constants';
 import {
   readConfigFileSync,
   validateConfig,
-  getCsvFilePaths,
+  getLocalCsvFilePaths,
 } from '../src/commands/convert';
 import { C2gError } from '../src/c2g-error';
 
@@ -142,7 +142,7 @@ describe('validateConfig', () => {
   });
 });
 
-describe('getCsvFilePaths', () => {
+describe('getLocalCsvFilePaths', () => {
   const testDir = path.join(__dirname, 'testDir');
   const testDir2 = path.join(__dirname, 'testDir2');
 
@@ -162,12 +162,12 @@ describe('getCsvFilePaths', () => {
   });
 
   it('should return an array with the full path of a single CSV file', () => {
-    const csvFiles = getCsvFilePaths(path.join(testDir, 'file1.csv'));
+    const csvFiles = getLocalCsvFilePaths(path.join(testDir, 'file1.csv'));
     expect(csvFiles).toEqual([path.join(testDir, 'file1.csv')]);
   });
 
   it('should return an array with the full path of all CSV files in a directory', () => {
-    const csvFiles = getCsvFilePaths(testDir);
+    const csvFiles = getLocalCsvFilePaths(testDir);
     expect(csvFiles).toEqual([
       path.join(testDir, 'file1.csv'),
       path.join(testDir, 'file2.CSV'),
@@ -175,13 +175,13 @@ describe('getCsvFilePaths', () => {
   });
 
   it('should return an empty array if there are no CSV files in a directory', () => {
-    const csvFiles = getCsvFilePaths(testDir2);
+    const csvFiles = getLocalCsvFilePaths(testDir2);
     expect(csvFiles).toEqual([]);
   });
 
   it('should return an "ENOTDIR: not a directory" error if the given path is neither a CSV file path or a directory path', () => {
     expect(() => {
-      getCsvFilePaths(path.join(testDir, 'file3.txt'));
+      getLocalCsvFilePaths(path.join(testDir, 'file3.txt'));
     }).toThrowError(
       `ENOTDIR: not a directory, scandir '${path.join(testDir, 'file3.txt')}'`,
     );
