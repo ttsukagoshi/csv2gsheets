@@ -1,6 +1,3 @@
-# Python venv
-# .env/
-
 # Node.js
 node_modules/
 build/
@@ -8,9 +5,14 @@ build/
 # Jest
 coverage/
 
-# Google Drive API
-# .credentials.json
-# .token.json
+# Google API Credentials
+.credentials.json
+.token.json
+.c2grc.json
+c2g.creds.json
+
+# Faker
+faker/data/
 
 # System Files
 .DS_Store
