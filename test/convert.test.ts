@@ -2,11 +2,14 @@
 
 import fs from 'fs';
 import path from 'path';
+import { drive_v3 } from 'googleapis';
+
 import { Config } from '../src/constants';
 import {
   readConfigFileSync,
   validateConfig,
   getLocalCsvFilePaths,
+  getExistingSheetsFileId,
 } from '../src/commands/convert';
 import { C2gError } from '../src/c2g-error';
 
@@ -185,5 +188,42 @@ describe('getLocalCsvFilePaths', () => {
     }).toThrowError(
       `ENOTDIR: not a directory, scandir '${path.join(testDir, 'file3.txt')}'`,
     );
+  });
+});
+
+describe('getExistingSheetsFileId', () => {
+  const mockExistingSheetsFiles = [
+    {
+      id: '12345',
+      name: 'file1',
+    },
+    {
+      name: 'file2',
+    },
+  ] as unknown as drive_v3.Schema$File[];
+  const mockEmptyExistingSheetsFiles = [] as unknown as drive_v3.Schema$File[];
+
+  it('should return the file ID if the file exists', () => {
+    expect(getExistingSheetsFileId('file1', mockExistingSheetsFiles)).toBe(
+      '12345',
+    );
+  });
+
+  it('should return null if the existing file does not have a valid ID', () => {
+    expect(
+      getExistingSheetsFileId('file2', mockExistingSheetsFiles),
+    ).toBeNull();
+  });
+
+  it('should return null if the file does not exist', () => {
+    expect(
+      getExistingSheetsFileId('file99', mockExistingSheetsFiles),
+    ).toBeNull();
+  });
+
+  it('should return null if the array existingSheetsFiles has the length of 0', () => {
+    expect(
+      getExistingSheetsFileId('file1', mockEmptyExistingSheetsFiles),
+    ).toBeNull();
   });
 });
