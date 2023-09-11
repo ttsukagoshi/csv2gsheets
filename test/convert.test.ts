@@ -4,7 +4,7 @@ import fs from 'fs';
 import path from 'path';
 import { drive_v3 } from 'googleapis';
 
-import { Config } from '../src/constants';
+import { Config, DEFAULT_CONFIG, HOME_DIR } from '../src/constants';
 import {
   readConfigFileSync,
   validateConfig,
@@ -46,102 +46,59 @@ describe('readConfigFileSync', () => {
 });
 
 describe('validateConfig', () => {
-  const testDir = path.join(__dirname, 'testDir');
-
-  beforeAll(() => {
-    // Create a test directory
-    fs.mkdirSync(testDir);
-  });
-
-  afterAll(() => {
-    // Remove the test directory and its contents
-    fs.rmSync(testDir, { recursive: true });
-  });
-
   it('should return the config object if it is valid', () => {
     const config = {
-      sourceDir: testDir,
+      sourceDir: HOME_DIR,
       targetDriveFolderId: '12345',
       targetIsSharedDrive: true,
       updateExistingGoogleSheets: true,
       saveOriginalFilesToDrive: false,
-    };
+    } as Partial<Config>;
     expect(validateConfig(config)).toEqual(config);
   });
 
   it('should throw an error if sourceDir is not a string', () => {
-    const config = {
-      sourceDir: 123,
-      targetDriveFolderId: '12345',
-      targetIsSharedDrive: true,
-      updateExistingGoogleSheets: true,
-      saveOriginalFilesToDrive: false,
-    } as unknown as Config;
-    expect(() => validateConfig(config)).toThrow(TypeError);
-  });
-
-  it('should throw an error if targetDriveFolderId is not a string', () => {
-    const config = {
-      sourceDir: '/path/to/source',
-      targetDriveFolderId: 123,
-      targetIsSharedDrive: true,
-      updateExistingGoogleSheets: true,
-      saveOriginalFilesToDrive: false,
-    } as unknown as Config;
-    expect(() => validateConfig(config)).toThrow(TypeError);
-  });
-
-  it('should throw an error if targetIsSharedDrive is not a boolean', () => {
-    const config = {
-      sourceDir: '/path/to/source',
-      targetDriveFolderId: '12345',
-      targetIsSharedDrive: 'true',
-      updateExistingGoogleSheets: true,
-      saveOriginalFilesToDrive: false,
-    } as unknown as Config;
-    expect(() => validateConfig(config)).toThrow(TypeError);
-  });
-
-  it('should throw an error if updateExistingGoogleSheets is not a boolean', () => {
-    const config = {
-      sourceDir: '/path/to/source',
-      targetDriveFolderId: '12345',
-      targetIsSharedDrive: true,
-      updateExistingGoogleSheets: 'true',
-      saveOriginalFilesToDrive: false,
-    } as unknown as Config;
-    expect(() => validateConfig(config)).toThrow(TypeError);
-  });
-
-  it('should throw an error if saveOriginalFilesToDrive is not a boolean', () => {
-    const config = {
-      sourceDir: '/path/to/source',
-      targetDriveFolderId: '12345',
-      targetIsSharedDrive: true,
-      updateExistingGoogleSheets: true,
-      saveOriginalFilesToDrive: 'false',
-    } as unknown as Config;
+    const config = { sourceDir: 123 } as unknown as Partial<Config>;
     expect(() => validateConfig(config)).toThrow(TypeError);
   });
 
   it('should throw an error if sourceDir is not a valid path', () => {
     const config = {
       sourceDir: '/path/to/nonexistent/directory',
-      targetDriveFolderId: '12345',
-      targetIsSharedDrive: true,
-      updateExistingGoogleSheets: true,
-      saveOriginalFilesToDrive: false,
-    };
+    } as Partial<Config>;
+    jest.spyOn(fs, 'existsSync').mockReturnValue(false);
     expect(() => validateConfig(config)).toThrow(C2gError);
   });
 
-  it('should throw an error if the config object does not contain 5 properties', () => {
+  it('should throw an error if targetDriveFolderId is not a string', () => {
+    const config = { targetDriveFolderId: 123 } as unknown as Partial<Config>;
+    expect(() => validateConfig(config)).toThrow(TypeError);
+  });
+
+  it('should throw an error if targetIsSharedDrive is not a boolean', () => {
     const config = {
-      sourceDir: testDir,
-      targetDriveFolderId: '12345',
-      updateExistingGoogleSheets: true,
-    } as unknown as Config;
-    expect(() => validateConfig(config)).toThrow(C2gError);
+      targetIsSharedDrive: 'true',
+    } as unknown as Partial<Config>;
+    expect(() => validateConfig(config)).toThrow(TypeError);
+  });
+
+  it('should throw an error if updateExistingGoogleSheets is not a boolean', () => {
+    const config = {
+      updateExistingGoogleSheets: 'true',
+    } as unknown as Partial<Config>;
+    expect(() => validateConfig(config)).toThrow(TypeError);
+  });
+
+  it('should throw an error if saveOriginalFilesToDrive is not a boolean', () => {
+    const config = {
+      saveOriginalFilesToDrive: 'false',
+    } as unknown as Partial<Config>;
+    expect(() => validateConfig(config)).toThrow(TypeError);
+  });
+
+  it('should add default values for missing config properties', () => {
+    const config = {} as Partial<Config>;
+    expect(validateConfig(config)).toEqual(DEFAULT_CONFIG);
   });
 });
 
