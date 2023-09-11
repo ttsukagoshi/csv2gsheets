@@ -18,3 +18,12 @@ export interface Config {
   updateExistingGoogleSheets: boolean;
   saveOriginalFilesToDrive: boolean;
 }
+
+// Default Config
+export const DEFAULT_CONFIG: Config = {
+  sourceDir: HOME_DIR,
+  targetDriveFolderId: 'root',
+  targetIsSharedDrive: false,
+  updateExistingGoogleSheets: false,
+  saveOriginalFilesToDrive: false,
+};
