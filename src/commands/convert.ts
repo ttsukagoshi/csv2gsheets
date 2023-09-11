@@ -1,7 +1,6 @@
 // convert command
 
 import fs from 'fs';
-import { GaxiosResponse } from 'gaxios';
 import { google, drive_v3 } from 'googleapis';
 import open from 'open';
 import path from 'path';
@@ -100,6 +99,43 @@ export function validateConfig(configObj: Config): Config {
 }
 
 /**
+ * Get the file names of all Google Sheets files in the target Google Drive folder.
+ * Iterate through all pages of the results.
+ * @param config The configuration object defined in `c2g.config.json`
+ * @returns An array of objects containing the file ID and name of each Google Sheets file in the target Google Drive folder
+ */
+export async function getExistingSheetsFiles(
+  drive: drive_v3.Drive,
+  config: Config,
+  fileList: drive_v3.Schema$File[] = [],
+  nextPageToken?: string,
+): Promise<drive_v3.Schema$File[]> {
+  if (config.updateExistingGoogleSheets) {
+    const params: drive_v3.Params$Resource$Files$List = {
+      supportsAllDrives: config.targetIsSharedDrive,
+      q: `'${config.targetDriveFolderId}' in parents and mimeType = 'application/vnd.google-apps.spreadsheet' and trashed = false`,
+      fields: 'files(id, name)',
+    };
+    if (nextPageToken) {
+      params.pageToken = nextPageToken;
+    }
+    const existingSheetsFilesObj = await drive.files.list(params);
+    if (existingSheetsFilesObj.data?.files) {
+      fileList = fileList.concat(existingSheetsFilesObj.data.files);
+      if (existingSheetsFilesObj.data.nextPageToken) {
+        fileList = await getExistingSheetsFiles(
+          drive,
+          config,
+          fileList,
+          existingSheetsFilesObj.data.nextPageToken,
+        );
+      }
+    }
+  }
+  return fileList;
+}
+
+/**
  * Get the full path of each CSV file in the given directory and return them as an array.
  * @param sourceDir The path to the source directory to look for CSV files
  * @returns An array of full paths of CSV files in the source directory
@@ -135,10 +171,10 @@ export function getLocalCsvFilePaths(sourceDir: string): string[] {
  */
 export function getExistingSheetsFileId(
   csvFileName: string,
-  existingSheetsFilesObj: GaxiosResponse<drive_v3.Schema$FileList>,
+  existingSheetsFiles: drive_v3.Schema$File[],
 ): string | null {
-  if (existingSheetsFilesObj.data?.files) {
-    const existingSheetsFile = existingSheetsFilesObj.data.files.find(
+  if (existingSheetsFiles.length > 0) {
+    const existingSheetsFile = existingSheetsFiles.find(
       (file: drive_v3.Schema$File) => file.name === csvFileName,
     );
     return existingSheetsFile?.id ? existingSheetsFile.id : null;
@@ -231,12 +267,7 @@ export default async function convert(
   const drive = google.drive({ version: 'v3', auth });
 
   // Get the file names of all Google Sheets files in the target Google Drive folder
-  // [To-Do] Add pagination
-  const existingSheetsFilesObj = await drive.files.list({
-    supportsAllDrives: config.targetIsSharedDrive,
-    q: `'${config.targetDriveFolderId}' in parents and mimeType = 'application/vnd.google-apps.spreadsheet' and trashed = false`,
-    fields: 'files(id, name)',
-  });
+  const existingSheetsFiles = await getExistingSheetsFiles(drive, config);
 
   // Get the full path of each CSV file in the source directory
   const csvFiles = getLocalCsvFilePaths(config.sourceDir);
@@ -256,7 +287,7 @@ export default async function convert(
       basename: basename,
       path: csvFile,
       existingSheetsFileId: config.updateExistingGoogleSheets
-        ? getExistingSheetsFileId(fileName, existingSheetsFilesObj)
+        ? getExistingSheetsFileId(fileName, existingSheetsFiles)
         : null,
     };
   });
