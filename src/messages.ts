@@ -14,8 +14,6 @@ export const MESSAGES = {
       'The value of updateExistingGoogleSheets in the configuration file must be a boolean, i.e., it must be either true or false.',
     typeErrorSaveOriginalFilesToDriveMustBeBoolean:
       'The value of saveOriginalFilesToDrive in the configuration file must be a boolean, i.e., it must be either true or false.',
-    c2gErrorConfigFileMustContain5Properties:
-      'The configuration file must contain the following five properties: sourceDir, targetDriveFolderId, updateExistingGoogleSheets, and saveOriginalFilesToDrive.',
     c2gErrorConfigFileNotFound:
       'Enter a valid path for the configuration file. You can create a new one by running the command `c2g init`.',
     c2gErrorCredentialsFileNotFound: `${CREDENTIALS_FILE_NAME} not found.`,

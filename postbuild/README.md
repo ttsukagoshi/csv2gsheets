@@ -1,6 +1,6 @@
 # `./postbuild/` directory
 
-This is a file for a simple script `postbuild.mjs` whose sole purpose is to add the file extension .js in the respective import statements of all targeted strings in the .js files in the ./build/src folder and its subfolders.
+This is a directory for a simple script `postbuild.mjs` whose sole purpose is to add the file extension .js in the respective import statements of all targeted strings in the .js files in the ./build/src folder and its subfolders.
 
 The script will add file extensions to all local import statements:
 

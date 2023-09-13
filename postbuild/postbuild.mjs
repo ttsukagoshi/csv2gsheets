@@ -20,6 +20,7 @@ const targetStrings = [
   "import { Config, CONFIG_FILE_NAME } from '../constants';",
   "import { CREDENTIALS_FILE_NAME } from './constants';",
   "import { CONFIG_FILE_NAME } from '../constants';",
+  "import { CONFIG_FILE_NAME, DEFAULT_CONFIG } from '../constants';",
   "import { MESSAGES } from '../messages';",
   "import { MESSAGES } from './messages';",
   "import { C2gError } from '../c2g-error';",

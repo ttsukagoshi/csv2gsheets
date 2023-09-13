@@ -1,23 +1,14 @@
 // init command
 
 // Import the necessary modules
-import inquirer from 'inquirer';
+import inquirer, { QuestionCollection } from 'inquirer';
 import fs from 'fs';
 import path from 'path';
 
 import { isAuthorized } from '../auth';
-import { Config, CONFIG_FILE_NAME } from '../constants';
+import { Config, CONFIG_FILE_NAME, DEFAULT_CONFIG } from '../constants';
 import login from './login';
 import { MESSAGES } from '../messages';
-
-// Define the data type of the questions to be asked
-interface Question {
-  name: string;
-  type: string;
-  message: string;
-  validate?: (value: string) => boolean | string;
-  default?: boolean;
-}
 
 interface InquirerInitOverwriteResponse {
   overwrite: boolean;
@@ -32,11 +23,12 @@ interface InitCommandOptions {
  */
 async function createConfigFile(): Promise<void> {
   // Define the questions to be asked
-  const questions: Question[] = [
+  const questions: QuestionCollection = [
     {
       name: 'sourceDir',
       type: 'input',
       message: MESSAGES.prompt.enterSourceDir,
+      default: DEFAULT_CONFIG.sourceDir,
       validate: (value: string) => {
         if (fs.existsSync(value)) {
           return true;
@@ -49,6 +41,7 @@ async function createConfigFile(): Promise<void> {
       name: 'targetDriveFolderId',
       type: 'input',
       message: MESSAGES.prompt.enterTargetDriveFolderId,
+      default: DEFAULT_CONFIG.targetDriveFolderId,
       validate: (value: string) => {
         if (value.length) {
           return true;
@@ -61,19 +54,19 @@ async function createConfigFile(): Promise<void> {
       name: 'targetIsSharedDrive',
       type: 'confirm',
       message: MESSAGES.prompt.targetIsSharedDriveYN,
-      default: false,
+      default: DEFAULT_CONFIG.targetIsSharedDrive,
     },
     {
       name: 'updateExistingGoogleSheets',
       type: 'confirm',
       message: MESSAGES.prompt.updateExistingGoogleSheetsYN,
-      default: false,
+      default: DEFAULT_CONFIG.updateExistingGoogleSheets,
     },
     {
       name: 'saveOriginalFilesToDrive',
       type: 'confirm',
       message: MESSAGES.prompt.saveOriginalFilesToDriveYN,
-      default: true,
+      default: DEFAULT_CONFIG.saveOriginalFilesToDrive,
     },
   ];
 

@@ -7,7 +7,7 @@ import path from 'path';
 
 import { authorize, isAuthorized } from '../auth';
 import { C2gError } from '../c2g-error';
-import { Config, CONFIG_FILE_NAME } from '../constants';
+import { Config, CONFIG_FILE_NAME, DEFAULT_CONFIG } from '../constants';
 import { MESSAGES } from '../messages';
 
 interface ConvertCommandOptions {
@@ -43,59 +43,55 @@ export function readConfigFileSync(configFilePath: string): Config {
 
 /**
  * Validate the configuration file.
- *
- * Note that this function does not check if the target Google Drive folder exists.
- * Validation of the Google Drive folder ID requires user authorization.
- * It is done in the main function, after the authorization is complete.
+ * Note that this function does not check if the target Google Drive folder exists
+ * or if the user has access to that folder.
  * @param configObj The contents of the configuration file as an object
  */
-export function validateConfig(configObj: Config): Config {
-  // Check if the configObj conforms with the Config type
-  if (
-    'sourceDir' in configObj &&
-    'targetDriveFolderId' in configObj &&
-    'targetIsSharedDrive' in configObj &&
-    'updateExistingGoogleSheets' in configObj &&
-    'saveOriginalFilesToDrive' in configObj
-  ) {
-    // Check configObj for data types
+export function validateConfig(configObj: Partial<Config>): Config {
+  if (configObj.sourceDir) {
     // If sourceDir is not a string, return false
     if (typeof configObj.sourceDir !== 'string') {
       throw new TypeError(MESSAGES.error.typeErrorSourceDirMustBeString);
     }
+    // If sourceDir is not a valid path, return false
+    if (!fs.existsSync(configObj.sourceDir)) {
+      throw new C2gError(MESSAGES.error.c2gErrorSourceDirMustBeValidPath);
+    }
+  }
+  if (configObj.targetDriveFolderId) {
     // If targetDriveFolderId is not a string, return false
     if (typeof configObj.targetDriveFolderId !== 'string') {
       throw new TypeError(
         MESSAGES.error.typeErrorTargetDriveFolderIdMustBeString,
       );
     }
+  }
+  if (configObj.targetIsSharedDrive) {
     // If targetIsSharedDrive is not a boolean, return false
     if (typeof configObj.targetIsSharedDrive !== 'boolean') {
       throw new TypeError(
         MESSAGES.error.typeErrorTargetIsSharedDriveMustBeBoolean,
       );
     }
+  }
+  if (configObj.updateExistingGoogleSheets) {
     // If updateExistingGoogleSheets is not a boolean, return false
     if (typeof configObj.updateExistingGoogleSheets !== 'boolean') {
       throw new TypeError(
         MESSAGES.error.typeErrorUpdateExistingGoogleSheetsMustBeBoolean,
       );
     }
+  }
+  if (configObj.saveOriginalFilesToDrive) {
     // If saveOriginalFilesToDrive is not a boolean, return false
     if (typeof configObj.saveOriginalFilesToDrive !== 'boolean') {
       throw new TypeError(
         MESSAGES.error.typeErrorSaveOriginalFilesToDriveMustBeBoolean,
       );
     }
-    // Check the validity of the values of the properties
-    // If sourceDir is not a valid path, return false
-    if (!fs.existsSync(configObj.sourceDir)) {
-      throw new C2gError(MESSAGES.error.c2gErrorSourceDirMustBeValidPath);
-    }
-    return configObj;
-  } else {
-    throw new C2gError(MESSAGES.error.c2gErrorConfigFileMustContain5Properties);
   }
+  const config = Object.assign({}, DEFAULT_CONFIG, configObj);
+  return config;
 }
 
 /**
