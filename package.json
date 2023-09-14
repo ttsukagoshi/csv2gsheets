@@ -20,7 +20,8 @@
     "build": "npx tsc && npm run postbuild",
     "faker": "node faker/faker.mjs",
     "postbuild": "node postbuild/postbuild.mjs",
-    "test": "npm run build && jest"
+    "test": "npm run build && jest",
+    "test-only": "jest --detectOpenHandles"
   },
   "repository": {
     "type": "git",
