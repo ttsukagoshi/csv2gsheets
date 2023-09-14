@@ -1,84 +1,102 @@
 // This is a simple script to add the file extension .js in the respective import statements
-// of all targeted strings in the .js files in the ./build/src folder and its subfolders.
-// The script will add file extensions to all local import statements:
-// e.g. import { foo } from './foo' => import { foo } from './foo.js'
-// This script is run together with `npx tsc` during the `npm run build` command.
+// See ./postbuild/README.md for more details.
+/* eslint-disable no-useless-escape */
 
 import fs from 'fs';
 import path from 'path';
 
-// The path to the folder containing the .js files to be modified.
-const targetPath = path.join(process.cwd(), 'build', 'src');
-
 // The target strings to be modified.
-const targetStrings = [
-  "import { authorize, isAuthorized, getUserEmail } from '../auth';",
-  "import { authorize, isAuthorized } from '../auth';",
-  "import { isAuthorized } from '../auth';",
-  "import { TOKEN_PATH } from '../auth';",
-  "import { CREDENTIALS_FILE_NAME, TOKEN_FILE_NAME, HOME_DIR } from './constants';",
-  "import { Config, CONFIG_FILE_NAME } from '../constants';",
-  "import { CREDENTIALS_FILE_NAME } from './constants';",
-  "import { CONFIG_FILE_NAME } from '../constants';",
-  "import { CONFIG_FILE_NAME, DEFAULT_CONFIG } from '../constants';",
-  "import { MESSAGES } from '../messages';",
-  "import { MESSAGES } from './messages';",
-  "import { C2gError } from '../c2g-error';",
-  "import { C2gError } from './c2g-error';",
-  "import { PACKAGE_JSON } from './package';",
-  "import { spinner, stopSpinner } from './utils';",
-  "import convert from './commands/convert';",
-  "import init from './commands/init';",
-  "import login from './commands/login';",
-  "import login from './login';",
-  "import logout from './commands/logout';",
-];
+// prettier-ignore
+export const TARGET_REGEXP_STR = "^(import (\\S*, )?({[^}]*}|\\S*) from '\\.{1,2}\\/[^']*{{fileName}})(';)$";
 
 /**
- * Find .js files in the given directory and its subfolders and return an array of file paths.
- * @param {string} dir
- * @param {string[]} fileList
- * @returns {string[]} The array of .js file paths.
+ * Find .js files in the given directory and its subfolders, and return an array of file objects,
+ * each containing the .js file's full path and its file name without the extension.
+ * @param {string} dir The directory to search.
+ * @param {any[]} jsFileList The existing array of TargetJsFile objects, for recursive calls.
+ * @returns The array of file objects containing the .js file's full path and its file name without the extension.
  */
-function findJsFiles(dir, fileList = []) {
-  const files = fs.readdirSync(dir);
-  files.forEach((file) => {
-    const filePath = path.join(dir, file);
-    const fileStat = fs.lstatSync(filePath);
-    if (fileStat.isDirectory()) {
-      findJsFiles(filePath, fileList);
-    } else if (path.extname(filePath) === '.js') {
-      fileList.push(filePath);
+export function findJsFiles(dir, jsFileList = []) {
+  const files = fs.readdirSync(dir, { withFileTypes: true });
+  files.forEach((fileDirent) => {
+    const filePath = path.join(dir, fileDirent.name);
+    const extName = path.extname(filePath);
+    if (fileDirent.isDirectory()) {
+      findJsFiles(filePath, jsFileList);
+    } else if (extName === '.js') {
+      jsFileList.push({
+        filePath: filePath,
+        fileName: fileDirent.name.replace(extName, ''),
+      });
     }
   });
-  return fileList;
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-return
+  return jsFileList;
 }
 
 /**
- * Function to search for the target strings in the given files
- * and add '.js' to the respective target strings.
- * @param {string[]} targetFiles
- * @param {string[]} targetStrings
- * @returns {void}
+ * Create a string of regular expressions based on the file names
+ * in the given array of file objects.
+ * The array of file objects is created by the function findJsFiles().
+ * @param {any[]} fileObjArr The array of file objects created by findJsFiles().
+ * @returns {RegExp[]} The array of regular expressions.
  */
-function addJsExtensions(targetFiles, targetStrings) {
-  targetFiles.forEach((file) => {
-    let fileContent = fs.readFileSync(file, 'utf8');
-    targetStrings.forEach((targetString) => {
-      if (fileContent.includes(targetString)) {
-        fileContent = fileContent.replace(
-          new RegExp(targetString, 'g'),
-          `${targetString.replace("';", ".js';")}`,
-        );
-      }
+export function createRegexpFromFileNames(fileObjArr) {
+  const regexpArr = [];
+  fileObjArr.forEach((fileObj) => {
+    regexpArr.push(
+      new RegExp(
+        // eslint-disable-next-line  @typescript-eslint/no-unsafe-member-access,@typescript-eslint/no-unsafe-argument
+        TARGET_REGEXP_STR.replace('{{fileName}}', fileObj.fileName),
+        'gm',
+      ),
+    );
+  });
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-return
+  return regexpArr;
+}
+
+/**
+ * Add '.js' to the part of the given file content
+ * that matches given regular expression.
+ * @param {string} fileContent The file content to be modified.
+ * @param {RegExp} regexp The regular expression to be replaced.
+ * @param {string} extension The extension to be added. e.g., ".js"
+ * @returns {string} The modified file content. If the given file content does not match the given regular expression, the file content is returned as is.
+ * @example
+ * ```
+ * replaceFileContent("import { authorize, isAuthorized } from '../auth';", /import (\S*, )?({[^}]*}|\S*) from '\.\/[^']*auth';/gm);
+ * // returns "import { authorize, isAuthorized } from '../auth.js';"
+ * ```
+ */
+export function replaceFileContent(fileContent, regexp, extension) {
+  if (fileContent.match(regexp)) {
+    fileContent = fileContent.replace(regexp, `$1${extension}$4`); // insert '.js' before the last single quote
+  }
+  return fileContent;
+}
+
+/**
+ * The main function to add the file extension .js
+ * in the respective internal import statements
+ * @param {string} targetPath The path to the folder containing the .js files to be modified.
+ */
+export function postbuild(targetPath) {
+  // console.log(`targetPath: ${targetPath}`);
+  // The array of file objects containing the .js file's full path and its file name without the extension.
+  const jsFileList = findJsFiles(targetPath);
+  // console.log(`jsFileList: ${JSON.stringify(jsFileList, null, 2)}`);
+  // The array of regular expressions.
+  const regexpArr = createRegexpFromFileNames(jsFileList);
+  jsFileList.forEach((fileObj) => {
+    // eslint-disable-next-line  @typescript-eslint/no-unsafe-member-access,@typescript-eslint/no-unsafe-argument
+    let fileContent = fs.readFileSync(fileObj.filePath, 'utf8');
+    regexpArr.forEach((regexp) => {
+      fileContent = replaceFileContent(fileContent, regexp, '.js');
     });
-    fs.writeFileSync(file, fileContent, 'utf8');
+    // eslint-disable-next-line  @typescript-eslint/no-unsafe-member-access,@typescript-eslint/no-unsafe-argument
+    fs.writeFileSync(fileObj.filePath, fileContent, 'utf8');
   });
 }
 
-addJsExtensions(findJsFiles(targetPath), targetStrings);
-/*
-console.log(
-  'build-replace.js: File extensions added to the import statements.',
-);
-*/
+postbuild(path.join(process.cwd(), 'build', 'src'));
