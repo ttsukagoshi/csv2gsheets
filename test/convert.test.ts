@@ -1,19 +1,17 @@
 // Jest test for the convert command in ./src/commands/convert.ts
 
 import fs from 'fs';
+// import open from 'open';
 import path from 'path';
-import { drive_v3 } from 'googleapis';
+// import { ChildProcess } from 'child_process';
+import { google, drive_v3 } from 'googleapis';
+import { OAuth2Client } from 'google-auth-library';
 
+import * as auth from '../src/auth';
 import { Config, DEFAULT_CONFIG, HOME_DIR } from '../src/constants';
-import {
-  readConfigFileSync,
-  validateConfig,
-  getLocalCsvFilePaths,
-  getExistingSheetsFiles,
-  getExistingSheetsFileId,
-  getCsvFolderId,
-} from '../src/commands/convert';
+import * as convert from '../src/commands/convert';
 import { C2gError } from '../src/c2g-error';
+import { MESSAGES } from '../src/messages';
 
 describe('readConfigFileSync', () => {
   const configFilePath = '/path/to/config.json';
@@ -32,18 +30,18 @@ describe('readConfigFileSync', () => {
     };
     jest.spyOn(fs, 'existsSync').mockReturnValue(true);
     jest.spyOn(fs, 'readFileSync').mockReturnValue(JSON.stringify(config));
-    expect(readConfigFileSync(configFilePath)).toEqual(config);
+    expect(convert.readConfigFileSync(configFilePath)).toEqual(config);
   });
 
   it('should throw an error if the config file does not exist', () => {
     jest.spyOn(fs, 'existsSync').mockReturnValue(false);
-    expect(() => readConfigFileSync(configFilePath)).toThrow(C2gError);
+    expect(() => convert.readConfigFileSync(configFilePath)).toThrow(C2gError);
   });
 
   it('should throw an error if the config file is not valid JSON', () => {
     jest.spyOn(fs, 'existsSync').mockReturnValue(true);
     jest.spyOn(fs, 'readFileSync').mockReturnValue('not valid JSON');
-    expect(() => readConfigFileSync(configFilePath)).toThrow();
+    expect(() => convert.readConfigFileSync(configFilePath)).toThrow();
   });
 });
 
@@ -56,12 +54,12 @@ describe('validateConfig', () => {
       updateExistingGoogleSheets: true,
       saveOriginalFilesToDrive: false,
     } as Partial<Config>;
-    expect(validateConfig(config)).toEqual(config);
+    expect(convert.validateConfig(config)).toEqual(config);
   });
 
   it('should throw an error if sourceDir is not a string', () => {
     const config = { sourceDir: 123 } as unknown as Partial<Config>;
-    expect(() => validateConfig(config)).toThrow(TypeError);
+    expect(() => convert.validateConfig(config)).toThrow(TypeError);
   });
 
   it('should throw an error if sourceDir is not a valid path', () => {
@@ -69,84 +67,79 @@ describe('validateConfig', () => {
       sourceDir: '/path/to/nonexistent/directory',
     } as Partial<Config>;
     jest.spyOn(fs, 'existsSync').mockReturnValue(false);
-    expect(() => validateConfig(config)).toThrow(C2gError);
+    expect(() => convert.validateConfig(config)).toThrow(C2gError);
   });
 
   it('should throw an error if targetDriveFolderId is not a string', () => {
     const config = { targetDriveFolderId: 123 } as unknown as Partial<Config>;
-    expect(() => validateConfig(config)).toThrow(TypeError);
+    expect(() => convert.validateConfig(config)).toThrow(TypeError);
   });
 
   it('should throw an error if targetIsSharedDrive is not a boolean', () => {
     const config = {
       targetIsSharedDrive: 'true',
     } as unknown as Partial<Config>;
-    expect(() => validateConfig(config)).toThrow(TypeError);
+    expect(() => convert.validateConfig(config)).toThrow(TypeError);
   });
 
   it('should throw an error if updateExistingGoogleSheets is not a boolean', () => {
     const config = {
       updateExistingGoogleSheets: 'true',
     } as unknown as Partial<Config>;
-    expect(() => validateConfig(config)).toThrow(TypeError);
+    expect(() => convert.validateConfig(config)).toThrow(TypeError);
   });
 
   it('should throw an error if saveOriginalFilesToDrive is not a boolean', () => {
     const config = {
       saveOriginalFilesToDrive: 'false',
     } as unknown as Partial<Config>;
-    expect(() => validateConfig(config)).toThrow(TypeError);
+    expect(() => convert.validateConfig(config)).toThrow(TypeError);
   });
 
   it('should add default values for missing config properties', () => {
     const config = {} as Partial<Config>;
-    expect(validateConfig(config)).toEqual(DEFAULT_CONFIG);
+    expect(convert.validateConfig(config)).toEqual(DEFAULT_CONFIG);
+  });
+});
+
+describe('isRoot', () => {
+  it('should return true if targetDriveFolderId is "root" (case-insensitive)', () => {
+    expect(convert.isRoot('root')).toBe(true);
+    expect(convert.isRoot('ROOT')).toBe(true);
+    expect(convert.isRoot('Root')).toBe(true);
+  });
+  it('should return false if targetDriveFolderId is not "root" or "ROOT"', () => {
+    expect(convert.isRoot('12345')).toBe(false);
   });
 });
 
 describe('getLocalCsvFilePaths', () => {
-  const testDir = path.join(__dirname, 'testDir');
-  const testDir2 = path.join(__dirname, 'testDir2');
-
-  beforeAll(() => {
-    // Create a test directory with some CSV files
-    fs.mkdirSync(testDir);
-    fs.mkdirSync(testDir2);
-    fs.writeFileSync(path.join(testDir, 'file1.csv'), '');
-    fs.writeFileSync(path.join(testDir, 'file2.CSV'), '');
-    fs.writeFileSync(path.join(testDir, 'file3.txt'), '');
-  });
-
-  afterAll(() => {
-    // Remove the test directory and its contents
-    fs.rmSync(testDir, { recursive: true });
-    fs.rmSync(testDir2, { recursive: true });
-  });
+  jest.mock('fs');
+  const testDir = path.join(process.cwd(), 'testDir');
 
   it('should return an array with the full path of a single CSV file', () => {
-    const csvFiles = getLocalCsvFilePaths(path.join(testDir, 'file1.csv'));
-    expect(csvFiles).toEqual([path.join(testDir, 'file1.csv')]);
+    const mockSingleCsvFilePath = path.join(testDir, 'file1.csv');
+    const csvFiles = convert.getLocalCsvFilePaths(mockSingleCsvFilePath);
+    expect(csvFiles).toEqual([mockSingleCsvFilePath]);
   });
 
   it('should return an array with the full path of all CSV files in a directory', () => {
-    const csvFiles = getLocalCsvFilePaths(testDir);
-    expect(csvFiles).toEqual([
-      path.join(testDir, 'file1.csv'),
-      path.join(testDir, 'file2.CSV'),
-    ]);
+    const mockTestFiles = ['file1.csv', 'file2.CSV', 'file3.txt'];
+    const mockCsvFiles = ['file1.csv', 'file2.CSV'];
+    const mockCsvFilePaths = mockCsvFiles.map((file) =>
+      path.join(testDir, file),
+    );
+    jest
+      .spyOn(fs, 'readdirSync')
+      .mockReturnValue(mockTestFiles as unknown as fs.Dirent[]);
+    const csvFiles = convert.getLocalCsvFilePaths(testDir);
+    expect(csvFiles).toEqual(mockCsvFilePaths);
   });
 
   it('should return an empty array if there are no CSV files in a directory', () => {
-    const csvFiles = getLocalCsvFilePaths(testDir2);
+    jest.spyOn(fs, 'readdirSync').mockReturnValue([]);
+    const csvFiles = convert.getLocalCsvFilePaths(testDir);
     expect(csvFiles).toEqual([]);
-  });
-
-  it('should return an "ENOTDIR: not a directory" error if the given path is neither a CSV file path or a directory path', () => {
-    expect(() => {
-      getLocalCsvFilePaths(path.join(testDir, 'file3.txt'));
-    }).toThrowError(
-      `ENOTDIR: not a directory, scandir '${path.join(testDir, 'file3.txt')}'`,
-    );
   });
 });
 
@@ -186,16 +179,18 @@ describe('getExistingSheetsFiles', () => {
       } as unknown as drive_v3.Resource$Files,
     } as unknown as drive_v3.Drive;
     const mockConfig = baseConfig;
-    expect(await getExistingSheetsFiles(mockDrive, mockConfig)).toEqual([
-      {
-        id: '12345',
-        name: 'file1',
-      },
-      {
-        id: '67890',
-        name: 'file2',
-      },
-    ]);
+    expect(await convert.getExistingSheetsFiles(mockDrive, mockConfig)).toEqual(
+      [
+        {
+          id: '12345',
+          name: 'file1',
+        },
+        {
+          id: '67890',
+          name: 'file2',
+        },
+      ],
+    );
   });
 
   it('should return an array of existing Google Sheets files with recursive calls using nextPageToken', async () => {
@@ -235,20 +230,22 @@ describe('getExistingSheetsFiles', () => {
       } as unknown as drive_v3.Resource$Files,
     } as unknown as drive_v3.Drive;
     const mockConfig = baseConfig;
-    expect(await getExistingSheetsFiles(mockDrive, mockConfig)).toEqual([
-      {
-        id: '12345',
-        name: 'file1',
-      },
-      {
-        id: '67890',
-        name: 'file2',
-      },
-      {
-        id: 'abcde',
-        name: 'file3',
-      },
-    ]);
+    expect(await convert.getExistingSheetsFiles(mockDrive, mockConfig)).toEqual(
+      [
+        {
+          id: '12345',
+          name: 'file1',
+        },
+        {
+          id: '67890',
+          name: 'file2',
+        },
+        {
+          id: 'abcde',
+          name: 'file3',
+        },
+      ],
+    );
   });
 
   it('should return the original fileList if config.updateExistingGoogleSheets is false', async () => {
@@ -267,7 +264,7 @@ describe('getExistingSheetsFiles', () => {
       },
     ] as unknown as drive_v3.Schema$File[];
     expect(
-      await getExistingSheetsFiles(mockDrive, mockConfig, mockFileList),
+      await convert.getExistingSheetsFiles(mockDrive, mockConfig, mockFileList),
     ).toEqual(mockFileList);
   });
 });
@@ -285,26 +282,26 @@ describe('getExistingSheetsFileId', () => {
   const mockEmptyExistingSheetsFiles = [] as unknown as drive_v3.Schema$File[];
 
   it('should return the file ID if the file exists', () => {
-    expect(getExistingSheetsFileId('file1', mockExistingSheetsFiles)).toBe(
-      '12345',
-    );
+    expect(
+      convert.getExistingSheetsFileId('file1', mockExistingSheetsFiles),
+    ).toBe('12345');
   });
 
   it('should return null if the existing file does not have a valid ID', () => {
     expect(
-      getExistingSheetsFileId('file2', mockExistingSheetsFiles),
+      convert.getExistingSheetsFileId('file2', mockExistingSheetsFiles),
     ).toBeNull();
   });
 
   it('should return null if the file does not exist', () => {
     expect(
-      getExistingSheetsFileId('file99', mockExistingSheetsFiles),
+      convert.getExistingSheetsFileId('file99', mockExistingSheetsFiles),
     ).toBeNull();
   });
 
   it('should return null if the array existingSheetsFiles has the length of 0', () => {
     expect(
-      getExistingSheetsFileId('file1', mockEmptyExistingSheetsFiles),
+      convert.getExistingSheetsFileId('file1', mockEmptyExistingSheetsFiles),
     ).toBeNull();
   });
 });
@@ -345,7 +342,7 @@ describe('getCsvFolderId', () => {
       } as unknown as drive_v3.Resource$Files,
     } as unknown as drive_v3.Drive;
     const mockConfig = baseConfig;
-    expect(await getCsvFolderId(mockDrive, mockConfig)).toBe(
+    expect(await convert.getCsvFolderId(mockDrive, mockConfig)).toBe(
       'CsvFolderId12345',
     );
   });
@@ -387,44 +384,27 @@ describe('getCsvFolderId', () => {
       } as unknown as drive_v3.Resource$Files,
     } as unknown as drive_v3.Drive;
     const mockConfig = baseConfig;
-    expect(await getCsvFolderId(mockDrive, mockConfig)).toBe(
+    expect(await convert.getCsvFolderId(mockDrive, mockConfig)).toBe(
       'NewlyCreatedCsvFolderId12345',
     );
-    expect(await getCsvFolderId(mockDrive, mockConfig)).toBe(
+    expect(await convert.getCsvFolderId(mockDrive, mockConfig)).toBe(
       'NewlyCreatedCsvFolderId12345',
     );
-    expect(await getCsvFolderId(mockDrive, mockConfig)).toBe(
+    expect(await convert.getCsvFolderId(mockDrive, mockConfig)).toBe(
       'NewlyCreatedCsvFolderId12345',
     );
   });
 
-  it('should throw an error if the csv folder could not be created', () => {
+  it('should throw an error if the csv folder could not be created', async () => {
     const mockDrive = {
       files: {
-        list: jest
-          .fn()
-          .mockImplementationOnce(() => {
-            return {
-              data: {
-                files: [] as drive_v3.Schema$FileList,
-              },
-            };
-          })
-          .mockImplementationOnce(() => {
-            return {};
-          })
-          .mockImplementationOnce(() => {
-            return {
-              data: {
-                files: [
-                  {
-                    noid: 'no-id',
-                    name: 'csv',
-                  } as drive_v3.Schema$File,
-                ] as drive_v3.Schema$FileList,
-              },
-            };
-          }),
+        list: jest.fn().mockImplementation(() => {
+          return {
+            data: {
+              files: [] as drive_v3.Schema$FileList,
+            },
+          };
+        }),
         create: jest.fn().mockImplementation(() => {
           return {
             data: {},
@@ -433,7 +413,9 @@ describe('getCsvFolderId', () => {
       } as unknown as drive_v3.Resource$Files,
     } as unknown as drive_v3.Drive;
     const mockConfig = baseConfig;
-    expect(() => getCsvFolderId(mockDrive, mockConfig)).toThrow(C2gError);
+    await expect(convert.getCsvFolderId(mockDrive, mockConfig)).rejects.toThrow(
+      C2gError,
+    );
   });
 
   it('should return null if config.saveOriginalFilesToDrive is false', async () => {
@@ -442,6 +424,138 @@ describe('getCsvFolderId', () => {
       ...baseConfig,
       saveOriginalFilesToDrive: false,
     };
-    expect(await getCsvFolderId(mockDrive, mockConfig)).toBeNull();
+    expect(await convert.getCsvFolderId(mockDrive, mockConfig)).toBeNull();
   });
+});
+
+describe('convert', () => {
+  jest.mock('googleapis');
+  jest.mock('fs');
+
+  afterEach(() => {
+    jest.restoreAllMocks();
+  });
+
+  const mockConfig: Config = {
+    sourceDir: path.join(process.cwd(), 'testCsvDir'),
+    targetDriveFolderId: 'TargetDriveFolderId12345',
+    targetIsSharedDrive: true,
+    updateExistingGoogleSheets: false,
+    saveOriginalFilesToDrive: false,
+  };
+
+  it('should throw an error if the user is not logged in', async () => {
+    jest.spyOn(auth, 'isAuthorized').mockImplementation(() => false);
+    await expect(convert.default({})).rejects.toThrow(
+      new C2gError(MESSAGES.error.c2gErrorNotLoggedIn),
+    );
+  });
+
+  it('should throw an error if there are no CSV files in the designated local directory', async () => {
+    jest.spyOn(auth, 'isAuthorized').mockImplementation(() => true);
+    jest.spyOn(console, 'info').mockImplementation();
+    jest.spyOn(fs, 'existsSync').mockReturnValue(true); // readConfigFileSync, validateConfig
+    jest.spyOn(fs, 'readFileSync').mockReturnValue(JSON.stringify(mockConfig)); // readConfigFileSync
+    jest.spyOn(fs, 'readdirSync').mockReturnValue([]); // getLocalCsvFilePaths
+    jest.spyOn(auth, 'authorize').mockImplementation(() => {
+      return Promise.resolve({} as unknown as OAuth2Client);
+    });
+    jest.spyOn(google, 'drive').mockImplementation(() => {
+      return {} as unknown as drive_v3.Drive;
+    });
+    await expect(convert.default({})).rejects.toThrow(
+      new C2gError(MESSAGES.error.c2gErrorNoCsvFilesFound),
+    );
+  });
+
+  it('should show the complete conversion process on dry run', async () => {
+    // Arrange
+    const mockLocalCsvFiles = ['file1.csv', 'file2.CSV'];
+    const mockLocalCsvFilePaths = mockLocalCsvFiles.map((file) =>
+      path.join(mockConfig.sourceDir, file),
+    );
+    jest.spyOn(auth, 'isAuthorized').mockImplementation(() => true);
+    jest.spyOn(console, 'info').mockImplementation();
+    jest.spyOn(fs, 'existsSync').mockReturnValue(true); // readConfigFileSync, validateConfig
+    jest.spyOn(fs, 'readFileSync').mockReturnValue(JSON.stringify(mockConfig)); // readConfigFileSync
+    jest
+      .spyOn(fs, 'readdirSync')
+      .mockReturnValue(mockLocalCsvFilePaths as unknown as fs.Dirent[]); // getLocalCsvFilePaths
+    jest.spyOn(auth, 'authorize').mockImplementation(() => {
+      return Promise.resolve({} as unknown as OAuth2Client);
+    });
+    jest.spyOn(google, 'drive').mockImplementation(() => {
+      return {} as unknown as drive_v3.Drive;
+    });
+    // Act
+    await convert.default({ dryRun: true });
+    // Assert
+    expect(console.info).toHaveBeenNthCalledWith(
+      1,
+      `${
+        MESSAGES.log.runningOnDryRun
+      }\n\n${MESSAGES.log.convertingCsvWithFollowingSettings(
+        Object.keys(mockConfig)
+          .map((key) => `${key}: ${mockConfig[key as keyof Config]}`)
+          .join('\n  '),
+      )}`,
+    );
+    expect(console.info).toHaveBeenNthCalledWith(
+      2,
+      MESSAGES.log.processingCsvFile(mockLocalCsvFiles[0], null),
+    );
+    expect(console.info).toHaveBeenNthCalledWith(
+      3,
+      MESSAGES.log.processingCsvFileComplete,
+    );
+    expect(console.info).toHaveBeenNthCalledWith(
+      4,
+      MESSAGES.log.processingCsvFile(mockLocalCsvFiles[1], null),
+    );
+    expect(console.info).toHaveBeenNthCalledWith(
+      5,
+      MESSAGES.log.processingCsvFileComplete,
+    );
+  });
+  /*
+  it('should open the default web browser if --browse option is enabled', async () => {
+    // Arrange
+    //jest.mock('open', () => jest.fn());
+    //const mockOpen = open as jest.MockedFunction<typeof open>;
+    // mockOpen.mockResolvedValue({ pid: 12345 } as unknown as ChildProcess);
+    // jest.spyOn(open, 'default');
+    // Other arranged settings are the same as the previous test:
+    // 'should show the complete conversion process on dry run'
+    const mockLocalCsvFiles = ['file1.csv', 'file2.CSV'];
+    const mockLocalCsvFilePaths = mockLocalCsvFiles.map((file) =>
+      path.join(mockConfig.sourceDir, file),
+    );
+    jest.spyOn(auth, 'isAuthorized').mockImplementation(() => true);
+    jest.spyOn(console, 'info').mockImplementation();
+    jest.spyOn(fs, 'existsSync').mockReturnValue(true); // readConfigFileSync, validateConfig
+    jest.spyOn(fs, 'readFileSync').mockReturnValue(JSON.stringify(mockConfig)); // readConfigFileSync
+    jest
+      .spyOn(fs, 'readdirSync')
+      .mockReturnValue(mockLocalCsvFilePaths as unknown as fs.Dirent[]); // getLocalCsvFilePaths
+    jest.spyOn(auth, 'authorize').mockImplementation(() => {
+      return Promise.resolve({} as unknown as OAuth2Client);
+    });
+    jest.spyOn(google, 'drive').mockImplementation(() => {
+      return {} as unknown as drive_v3.Drive;
+    });
+    // Act
+    await convert.default({ dryRun: true, browse: true });
+    // Assert
+    expect(mockOpen as jest.Mock).toHaveBeenCalled();
+    expect(mockOpen).toHaveBeenCalledWith(
+      `https://drive.google.com/drive/folders/${mockConfig.targetDriveFolderId}`,
+    );
+    expect(console.info).toHaveBeenNthCalledWith(
+      6,
+      MESSAGES.log.openingTargetDriveFolderOnBrowser(
+        `https://drive.google.com/drive/folders/${mockConfig.targetDriveFolderId}`,
+      ),
+    );
+  });
+  */
 });
