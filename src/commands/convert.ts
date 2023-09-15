@@ -10,13 +10,13 @@ import { C2gError } from '../c2g-error';
 import { Config, CONFIG_FILE_NAME, DEFAULT_CONFIG } from '../constants';
 import { MESSAGES } from '../messages';
 
-interface ConvertCommandOptions {
+export interface ConvertCommandOptions {
   readonly browse?: boolean;
   readonly configFilePath?: string;
   readonly dryRun?: boolean;
 }
 
-interface CsvFileObj {
+export interface CsvFileObj {
   name: string;
   basename: string;
   path: string;
@@ -95,6 +95,17 @@ export function validateConfig(configObj: Partial<Config>): Config {
 }
 
 /**
+ * Check if the given target Google Drive folder ID is "root" (case-insensitive).
+ * If it is, return true. Here, "root" is a special value that refers to the root folder
+ * in My Drive.
+ * @param targetDriveFolderId The target Google Drive folder ID
+ * @returns `true` if the target Google Drive folder ID is "root", or `false` if it isn't
+ */
+export function isRoot(targetDriveFolderId: string): boolean {
+  return targetDriveFolderId.toLowerCase() === 'root';
+}
+
+/**
  * Get the file names of all Google Sheets files in the target Google Drive folder.
  * Iterate through all pages of the results.
  * @param config The configuration object defined in `c2g.config.json`
@@ -110,7 +121,7 @@ export async function getExistingSheetsFiles(
     const params: drive_v3.Params$Resource$Files$List = {
       supportsAllDrives: config.targetIsSharedDrive,
       q: `'${config.targetDriveFolderId}' in parents and mimeType = 'application/vnd.google-apps.spreadsheet' and trashed = false`,
-      fields: 'files(id, name)',
+      fields: 'nextPageToken, files(id, name)',
     };
     if (nextPageToken) {
       params.pageToken = nextPageToken;
@@ -207,13 +218,16 @@ export async function getCsvFolderId(
       csvFolderList.data.files.length === 0 ||
       !csvFolderList.data.files[0].id
     ) {
+      const newCsvFolderRequestBody: drive_v3.Schema$File = {
+        name: 'csv',
+        mimeType: 'application/vnd.google-apps.folder',
+      };
+      if (isRoot(config.targetDriveFolderId)) {
+        newCsvFolderRequestBody.parents = [config.targetDriveFolderId];
+      }
       const newCsvFolder = await drive.files.create({
         supportsAllDrives: config.targetIsSharedDrive,
-        requestBody: {
-          name: 'csv',
-          mimeType: 'application/vnd.google-apps.folder',
-          parents: [config.targetDriveFolderId],
-        },
+        requestBody: newCsvFolderRequestBody,
       });
 
       if (!newCsvFolder.data.id) {
@@ -251,12 +265,12 @@ export default async function convert(
     MESSAGES.log.convertingCsvWithFollowingSettings(
       Object.keys(config)
         .map((key) => `${key}: ${config[key as keyof Config]}`)
-        .join('\n'),
+        .join('\n  '),
     );
   convertingCsvWithFollowingSettings = options.dryRun
     ? `${MESSAGES.log.runningOnDryRun}\n\n${convertingCsvWithFollowingSettings}`
     : convertingCsvWithFollowingSettings;
-  console.info(convertingCsvWithFollowingSettings + '\n');
+  console.info(convertingCsvWithFollowingSettings);
 
   // Authorize the user
   const auth = await authorize();
@@ -294,7 +308,7 @@ export default async function convert(
 
   // If config.saveOriginalFilesToDrive is false, csvFolderId will be null
   if (csvFolderId) {
-    console.info('\n' + MESSAGES.log.uploadingOriginalCsvFilesTo(csvFolderId));
+    console.info(MESSAGES.log.uploadingOriginalCsvFilesTo(csvFolderId));
   }
 
   for (const csvFileObj of csvFilesObjArray) {
@@ -367,11 +381,10 @@ export default async function convert(
 
   if (options.browse) {
     // Open the target Google Drive folder in the default browser if the --browse option is specified
-    const url =
-      config.targetDriveFolderId.toLowerCase() === 'root'
-        ? 'https://drive.google.com/drive/my-drive'
-        : `https://drive.google.com/drive/folders/${config.targetDriveFolderId}`;
-    console.info('\n' + MESSAGES.log.openingTargetDriveFolderOnBrowser(url));
+    const url = isRoot(config.targetDriveFolderId)
+      ? 'https://drive.google.com/drive/my-drive'
+      : `https://drive.google.com/drive/folders/${config.targetDriveFolderId}`;
+    console.info(MESSAGES.log.openingTargetDriveFolderOnBrowser(url));
     await open(url);
   }
 }
