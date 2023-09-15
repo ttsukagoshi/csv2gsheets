@@ -79,7 +79,7 @@ async function saveToken(client: OAuth2Client): Promise<void> {
   const credentialsStr = await fs.promises.readFile(CREDENTIALS_PATH, 'utf8');
   const parsedCredentials = JSON.parse(credentialsStr) as Credentials;
   if ('installed' in parsedCredentials || 'web' in parsedCredentials) {
-    const key = parsedCredentials.installed || parsedCredentials.web;
+    const key = parsedCredentials.installed ?? parsedCredentials.web;
     if (!key) {
       throw new C2gError(MESSAGES.error.c2gErrorInvalidCredentials);
     }
