@@ -27,7 +27,7 @@ export const MESSAGES = {
   },
   log: {
     convertingCsvWithFollowingSettings: (configStr: string) =>
-      `Converting local CSV to Google Sheet with the following settings:\n${configStr}`,
+      `Converting local CSV to Google Sheet with the following settings:\n  ${configStr}`,
     loggingIn: 'Logging in...',
     noChangesWereMade: 'No changes were made.',
     openingTargetDriveFolderOnBrowser: (url: string) =>
@@ -36,7 +36,7 @@ export const MESSAGES = {
       fileName: string,
       existingSheetsFileId: string | null,
     ) =>
-      `\n${
+      `${
         existingSheetsFileId ? 'Updating' : 'Creating'
       } Google Sheets file from ${fileName}...`,
     processingCsvFileComplete: 'Done.',
