@@ -9,7 +9,9 @@ import {
   readConfigFileSync,
   validateConfig,
   getLocalCsvFilePaths,
+  getExistingSheetsFiles,
   getExistingSheetsFileId,
+  getCsvFolderId,
 } from '../src/commands/convert';
 import { C2gError } from '../src/c2g-error';
 
@@ -148,6 +150,128 @@ describe('getLocalCsvFilePaths', () => {
   });
 });
 
+describe('getExistingSheetsFiles', () => {
+  jest.mock('googleapis');
+  afterEach(() => {
+    jest.restoreAllMocks();
+  });
+
+  const baseConfig: Config = {
+    sourceDir: '/path/to/source',
+    targetDriveFolderId: '12345',
+    targetIsSharedDrive: true,
+    updateExistingGoogleSheets: true,
+    saveOriginalFilesToDrive: false,
+  };
+
+  it('should return an array of existing Google Sheets files without nextPageToken', async () => {
+    const mockDrive = {
+      files: {
+        list: jest.fn().mockImplementation(() => {
+          return {
+            data: {
+              files: [
+                {
+                  id: '12345',
+                  name: 'file1',
+                } as drive_v3.Schema$File,
+                {
+                  id: '67890',
+                  name: 'file2',
+                } as drive_v3.Schema$File,
+              ],
+            } as drive_v3.Schema$FileList,
+          };
+        }),
+      } as unknown as drive_v3.Resource$Files,
+    } as unknown as drive_v3.Drive;
+    const mockConfig = baseConfig;
+    expect(await getExistingSheetsFiles(mockDrive, mockConfig)).toEqual([
+      {
+        id: '12345',
+        name: 'file1',
+      },
+      {
+        id: '67890',
+        name: 'file2',
+      },
+    ]);
+  });
+
+  it('should return an array of existing Google Sheets files with recursive calls using nextPageToken', async () => {
+    const mockDrive = {
+      files: {
+        list: jest
+          .fn()
+          .mockImplementationOnce(() => {
+            return {
+              data: {
+                files: [
+                  {
+                    id: '12345',
+                    name: 'file1',
+                  } as drive_v3.Schema$File,
+                  {
+                    id: '67890',
+                    name: 'file2',
+                  } as drive_v3.Schema$File,
+                ] as drive_v3.Schema$FileList,
+                nextPageToken: 'nextPageToken123',
+              },
+            };
+          })
+          .mockImplementationOnce(() => {
+            return {
+              data: {
+                files: [
+                  {
+                    id: 'abcde',
+                    name: 'file3',
+                  } as drive_v3.Schema$File,
+                ] as drive_v3.Schema$FileList,
+              },
+            };
+          }),
+      } as unknown as drive_v3.Resource$Files,
+    } as unknown as drive_v3.Drive;
+    const mockConfig = baseConfig;
+    expect(await getExistingSheetsFiles(mockDrive, mockConfig)).toEqual([
+      {
+        id: '12345',
+        name: 'file1',
+      },
+      {
+        id: '67890',
+        name: 'file2',
+      },
+      {
+        id: 'abcde',
+        name: 'file3',
+      },
+    ]);
+  });
+
+  it('should return the original fileList if config.updateExistingGoogleSheets is false', async () => {
+    const mockDrive = {} as unknown as drive_v3.Drive;
+    const mockConfig = {
+      ...baseConfig,
+      updateExistingGoogleSheets: false,
+    };
+    const mockFileList = [
+      {
+        id: '12345',
+        name: 'file1',
+      },
+      {
+        name: 'file2',
+      },
+    ] as unknown as drive_v3.Schema$File[];
+    expect(
+      await getExistingSheetsFiles(mockDrive, mockConfig, mockFileList),
+    ).toEqual(mockFileList);
+  });
+});
+
 describe('getExistingSheetsFileId', () => {
   const mockExistingSheetsFiles = [
     {
@@ -182,5 +306,142 @@ describe('getExistingSheetsFileId', () => {
     expect(
       getExistingSheetsFileId('file1', mockEmptyExistingSheetsFiles),
     ).toBeNull();
+  });
+});
+
+describe('getCsvFolderId', () => {
+  jest.mock('googleapis');
+  afterEach(() => {
+    jest.restoreAllMocks();
+  });
+
+  const baseConfig: Config = {
+    sourceDir: '/path/to/source',
+    targetDriveFolderId: 'TargetDriveFolderId12345',
+    targetIsSharedDrive: true,
+    updateExistingGoogleSheets: true,
+    saveOriginalFilesToDrive: true,
+  };
+
+  it('should return the ID of the csv folder if config.saveOriginalFilesToDrive is false and it exists', async () => {
+    const mockDrive = {
+      files: {
+        list: jest.fn().mockImplementation(() => {
+          return {
+            data: {
+              files: [
+                {
+                  id: 'CsvFolderId12345',
+                  name: 'csv',
+                } as drive_v3.Schema$File,
+                {
+                  id: 'OtherFolderId67890',
+                  name: 'csv',
+                } as drive_v3.Schema$File,
+              ] as drive_v3.Schema$FileList,
+            },
+          };
+        }),
+      } as unknown as drive_v3.Resource$Files,
+    } as unknown as drive_v3.Drive;
+    const mockConfig = baseConfig;
+    expect(await getCsvFolderId(mockDrive, mockConfig)).toBe(
+      'CsvFolderId12345',
+    );
+  });
+
+  it('should create a new folder in the target Google Drive folder and return its ID', async () => {
+    const mockDrive = {
+      files: {
+        list: jest
+          .fn()
+          .mockImplementationOnce(() => {
+            return {
+              data: {
+                files: [] as drive_v3.Schema$FileList,
+              },
+            };
+          })
+          .mockImplementationOnce(() => {
+            return {};
+          })
+          .mockImplementationOnce(() => {
+            return {
+              data: {
+                files: [
+                  {
+                    noid: 'no-id',
+                    name: 'csv',
+                  } as drive_v3.Schema$File,
+                ] as drive_v3.Schema$FileList,
+              },
+            };
+          }),
+        create: jest.fn().mockImplementation(() => {
+          return {
+            data: {
+              id: 'NewlyCreatedCsvFolderId12345',
+            },
+          };
+        }),
+      } as unknown as drive_v3.Resource$Files,
+    } as unknown as drive_v3.Drive;
+    const mockConfig = baseConfig;
+    expect(await getCsvFolderId(mockDrive, mockConfig)).toBe(
+      'NewlyCreatedCsvFolderId12345',
+    );
+    expect(await getCsvFolderId(mockDrive, mockConfig)).toBe(
+      'NewlyCreatedCsvFolderId12345',
+    );
+    expect(await getCsvFolderId(mockDrive, mockConfig)).toBe(
+      'NewlyCreatedCsvFolderId12345',
+    );
+  });
+
+  it('should throw an error if the csv folder could not be created', () => {
+    const mockDrive = {
+      files: {
+        list: jest
+          .fn()
+          .mockImplementationOnce(() => {
+            return {
+              data: {
+                files: [] as drive_v3.Schema$FileList,
+              },
+            };
+          })
+          .mockImplementationOnce(() => {
+            return {};
+          })
+          .mockImplementationOnce(() => {
+            return {
+              data: {
+                files: [
+                  {
+                    noid: 'no-id',
+                    name: 'csv',
+                  } as drive_v3.Schema$File,
+                ] as drive_v3.Schema$FileList,
+              },
+            };
+          }),
+        create: jest.fn().mockImplementation(() => {
+          return {
+            data: {},
+          };
+        }),
+      } as unknown as drive_v3.Resource$Files,
+    } as unknown as drive_v3.Drive;
+    const mockConfig = baseConfig;
+    expect(() => getCsvFolderId(mockDrive, mockConfig)).toThrow(C2gError);
+  });
+
+  it('should return null if config.saveOriginalFilesToDrive is false', async () => {
+    const mockDrive = {} as unknown as drive_v3.Drive;
+    const mockConfig = {
+      ...baseConfig,
+      saveOriginalFilesToDrive: false,
+    };
+    expect(await getCsvFolderId(mockDrive, mockConfig)).toBeNull();
   });
 });
