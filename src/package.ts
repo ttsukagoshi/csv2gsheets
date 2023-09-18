@@ -5,6 +5,6 @@ import { fileURLToPath } from 'url';
 import { readPackageUpSync } from 'read-pkg-up';
 
 // Package Info
-export const __dirname: string = dirname(fileURLToPath(import.meta.url));
+const __dirname: string = dirname(fileURLToPath(import.meta.url));
 export const PACKAGE_JSON =
   readPackageUpSync({ cwd: __dirname })?.packageJson || undefined;
