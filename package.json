@@ -61,7 +61,6 @@
     "googleapis": "^126.0.1",
     "inquirer": "^9.2.10",
     "loud-rejection": "^2.2.0",
-    "ora": "^7.0.1",
     "read-pkg-up": "^10.1.0"
   }
 }
