@@ -1,6 +1,6 @@
 {
   "name": "csv2gsheets",
-  "version": "0.4.0",
+  "version": "0.5.0",
   "description": "CLI tool to convert local CSV files into Google Sheets files in a designated Google Drive folder.",
   "type": "module",
   "engines": {
