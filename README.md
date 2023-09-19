@@ -1,5 +1,7 @@
 # csv2gsheets: Create & update Google Sheets files using your local CSV
 
+[![code style: prettier](https://img.shields.io/badge/code_style-prettier-ff69b4.svg?style=flat-square)](https://github.com/prettier/prettier) [![Accessibility-alt-text-bot](https://github.com/ttsukagoshi/csv2gsheets/actions/workflows/a11y-alt-text-bot.yml/badge.svg)](https://github.com/ttsukagoshi/csv2gsheets/actions/workflows/a11y-alt-text-bot.yml) [![jest coverage](https://github.com/ttsukagoshi/csv2gsheets/actions/workflows/jest-coverage.yml/badge.svg)](https://github.com/ttsukagoshi/csv2gsheets/actions/workflows/jest-coverage.yml) [![Lint Code Base](https://github.com/ttsukagoshi/csv2gsheets/actions/workflows/linter.yml/badge.svg)](https://github.com/ttsukagoshi/csv2gsheets/actions/workflows/linter.yml)
+
 A Node.js CLI tool to convert local CSV files into Google Sheets files in a designated Google Drive folder. You can choose whether to update an existing Sheets file or create a new one.
 
 ## What is it for?
@@ -76,14 +78,13 @@ The basic steps are described below, but you can also refer to the [Google Cloud
 
 1. Create a Google Cloud project  
    Go to the [Google Cloud Console](https://console.cloud.google.com/) and create a new project. You can also click [this link](https://console.cloud.google.com/projectcreate) to go directly to the project creation page.
-   
+
    <img width="767" alt="Screenshot of the page to create a new Google Cloud project" src="https://github.com/ttsukagoshi/csv2gsheets/assets/55706659/d70594c9-8319-4145-b527-49bbf7d01e3e">
 
 2. Enable the Drive API  
    Go to the [API Library](https://console.cloud.google.com/apis/library) page and enable the Drive API. You can also click [this link](https://console.cloud.google.com/flows/enableapi?apiid=drive.googleapis.com) to go directly to the "Enable Drive API" page.
 
   <img width="943" alt="Screenshot of the Enable API page" src="https://github.com/ttsukagoshi/csv2gsheets/assets/55706659/10a2b973-9dc9-4e54-9631-8b21cc86c3b7">
-
 
 3. Create the OAuth consent screen  
    Go to the [OAuth consent screen](https://console.cloud.google.com/apis/credentials/consent) page and create a new consent screen. You can choose "Internal" or "External," depending on whether you want to use the tool only for yourself or share it with others. If you select "External," you must add test users. Enter your Google account and other authorized test users' addresses in the "Test users" section.
@@ -94,7 +95,6 @@ The basic steps are described below, but you can also refer to the [Google Cloud
    Go to the [Credentials](https://console.cloud.google.com/apis/credentials) page and create a new OAuth client ID. Choose "Desktop app" as the application type. You can choose any name you like for the client ID. Save the created credentials as a JSON file named `c2g.creds.json` and save them in your home directory.
 
    <img width="954" alt="Screenshot of the popup that the user will see when they have completed setting their OAuth client ID. The DOWNLOAD JSON button will be available." src="https://github.com/ttsukagoshi/csv2gsheets/assets/55706659/14cd38ec-2308-469a-816a-166333348e5a">
-
 
 The credentials file saved in your home directory would be something like this:
 
