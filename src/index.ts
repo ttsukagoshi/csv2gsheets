@@ -1,13 +1,12 @@
 #!/usr/bin/env node
 /* eslint @typescript-eslint/no-floating-promises: ["error", { ignoreIIFE: true }] */
 
-import loudRejection from 'loud-rejection';
 import { program } from 'commander';
+import loudRejection from 'loud-rejection';
 
 // Local imports
 import { C2gError } from './c2g-error';
 import { PACKAGE_JSON } from './package';
-import { spinner, stopSpinner } from './utils';
 
 // Commands
 import convert from './commands/convert';
@@ -23,12 +22,12 @@ program.storeOptionsAsProperties(false);
 
 // Display package version
 program.version(
-  PACKAGE_JSON?.version || '0.0.0',
+  PACKAGE_JSON?.version ?? '0.0.0',
   '-v, --version',
   'Output the current version',
 );
 program
-  .name(`${PACKAGE_JSON?.name || 'csv2gsheets'}`)
+  .name(`${PACKAGE_JSON?.name ?? 'csv2gsheets'}`)
   .usage('<command> [options]')
   .description(
     `${PACKAGE_JSON?.name} - ${PACKAGE_JSON?.description}\nUse \`c2g\` for shorthand.`,
@@ -82,10 +81,7 @@ program
   try {
     // User input is provided from the command line arguments
     await program.parseAsync(process.argv);
-    stopSpinner();
   } catch (error) {
-    // Handle errors
-    stopSpinner();
     if (error instanceof C2gError) {
       console.error(error.message);
     } else if (error instanceof Error) {
@@ -96,5 +92,4 @@ program
       console.error('An unknown error occurred.', error);
     }
   }
-  spinner.clear();
 })();

@@ -60,7 +60,7 @@ is the equivalent of running
 csv2gsheets convert --dry-run
 ```
 
-#### Updating csv2gheets
+#### Updating csv2gsheets
 
 New releases will be posted on [the GitHub repository](https://github.com/ttsukagoshi/csv2gsheets). To update your installed version, run the following:
 

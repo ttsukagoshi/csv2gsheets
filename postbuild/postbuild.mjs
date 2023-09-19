@@ -7,7 +7,7 @@ import path from 'path';
 
 // The target strings to be modified.
 // prettier-ignore
-export const TARGET_REGEXP_STR = "^(import (\\S*, )?({[^}]*}|\\S*) from '\\.{1,2}\\/[^']*{{fileName}})(';)$";
+export const TARGET_REGEXP_STR = "^(import (\\S*, )?({[^}]*}|\\S*( as \\S*)?) from '\\.{1,2}\\/[^']*{{fileName}})(';)$";
 
 /**
  * Find .js files in the given directory and its subfolders, and return an array of file objects,
@@ -71,7 +71,7 @@ export function createRegexpFromFileNames(fileObjArr) {
  */
 export function replaceFileContent(fileContent, regexp, extension) {
   if (fileContent.match(regexp)) {
-    fileContent = fileContent.replace(regexp, `$1${extension}$4`); // insert '.js' before the last single quote
+    fileContent = fileContent.replace(regexp, `$1${extension}$5`); // insert '.js' before the last single quote
   }
   return fileContent;
 }

@@ -35,8 +35,20 @@ extends:
   - 'plugin:prettier/recommended'
   - 'plugin:@typescript-eslint/recommended-type-checked'
   - 'plugin:@typescript-eslint/stylistic-type-checked'
+overrides:
+  - {
+      files: ['test/**'],
+      plugins: ['jest'],
+      extends: ['plugin:jest/recommended'],
+      rules:
+        {
+          '@typescript-eslint/unbound-method': 'off',
+          'jest/unbound-method': 'error',
+        },
+    }
 plugins:
   - '@typescript-eslint'
+  - 'jest'
 #########
 # Rules #
 #########

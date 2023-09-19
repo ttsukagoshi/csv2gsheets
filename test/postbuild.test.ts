@@ -86,7 +86,7 @@ describe('createRegexpFromFileNames', () => {
 describe('replaceFileContent', () => {
   it('should replace the content of a file', () => {
     const fileContent =
-      "import { test1 } from './test1';\nimport test2, { test2sub } from './test2';\nimport fs from 'fs';\nimport test2 from 'test2';\nconst test2 = () => {\n  console.log('test2');\n};\n\nexport { test2 };\n";
+      "import { test1 } from './test1';\nimport test2, { test2sub } from './test2';\nimport fs from 'fs';\nimport test2 from 'test2';\nimport * as utils from './test2';\nconst test2 = () => {\n  console.log('test2');\n};\n\nexport { test2 };\n";
     const regexp = new RegExp(
       postbuild.TARGET_REGEXP_STR.replace('{{fileName}}', 'test2'),
       'gm',
@@ -94,7 +94,7 @@ describe('replaceFileContent', () => {
     const extension = '.js';
     expect(fileContent.match(regexp)).not.toBeNull();
     expect(postbuild.replaceFileContent(fileContent, regexp, extension)).toBe(
-      "import { test1 } from './test1';\nimport test2, { test2sub } from './test2.js';\nimport fs from 'fs';\nimport test2 from 'test2';\nconst test2 = () => {\n  console.log('test2');\n};\n\nexport { test2 };\n",
+      "import { test1 } from './test1';\nimport test2, { test2sub } from './test2.js';\nimport fs from 'fs';\nimport test2 from 'test2';\nimport * as utils from './test2.js';\nconst test2 = () => {\n  console.log('test2');\n};\n\nexport { test2 };\n",
     );
   });
 });

@@ -11,16 +11,21 @@ export default {
   collectCoverageFrom: [
     '<rootDir>/src/**/*.ts',
     '!<rootDir>/src/**/index.ts',
-    '!<rootDir>/src/**/auth.ts',
-    '!<rootDir>/src/**/constants.ts',
     '!<rootDir>/src/**/package.ts',
-    '!<rootDir>/src/**/utils.ts',
     '<rootDir>/postbuild/postbuild.mjs',
   ],
   // The directory where Jest should output its coverage files
   coverageDirectory: 'coverage',
   // Indicates which provider should be used to instrument code for coverage
   coverageProvider: 'v8',
+  coverageThreshold: {
+    global: {
+      branches: 100,
+      functions: 100,
+      lines: 100,
+      statements: 100,
+    },
+  },
   extensionsToTreatAsEsm: ['.ts'],
   moduleFileExtensions: ['ts', 'js', 'mjs', 'json'],
   testEnvironment: 'node',
@@ -36,5 +41,8 @@ export default {
       },
     ],
   },
+  transformIgnorePatterns: [
+    '/node_modules/(?!chalk|escape-string-regexp|figures|inquirer|is-unicode-supported/)',
+  ],
   verbose: true,
 };
