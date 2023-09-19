@@ -22,7 +22,7 @@ const CREDENTIALS_PATH = path.join(HOME_DIR, CREDENTIALS_FILE_NAME);
 export const TOKEN_PATH = path.join(HOME_DIR, TOKEN_FILE_NAME);
 
 // Interface
-interface CredentialsKey {
+export interface CredentialsKey {
   client_id: string;
   project_id: string;
   auth_uri: string;
@@ -71,8 +71,8 @@ export function loadSavedToken(): OAuth2Client | null {
  * Serialize credentials to a file compatible with GoogleAuth.fromJSON.
  * @param client The OAuth2Client object to serialize.
  */
-export async function saveToken(client: OAuth2Client): Promise<void> {
-  const credentialsStr = await fs.promises.readFile(CREDENTIALS_PATH, 'utf8');
+export function saveToken(client: OAuth2Client): void {
+  const credentialsStr = fs.readFileSync(CREDENTIALS_PATH, 'utf8');
   const parsedCredentials = JSON.parse(credentialsStr) as Credentials;
   if ('installed' in parsedCredentials || 'web' in parsedCredentials) {
     const key = parsedCredentials.installed ?? parsedCredentials.web;
@@ -86,7 +86,7 @@ export async function saveToken(client: OAuth2Client): Promise<void> {
       access_token: client.credentials.access_token,
       refresh_token: client.credentials.refresh_token,
     });
-    await fs.promises.writeFile(TOKEN_PATH, payload);
+    fs.writeFileSync(TOKEN_PATH, payload);
   } else {
     throw new C2gError(MESSAGES.error.c2gErrorInvalidCredentials);
   }
@@ -104,7 +104,7 @@ export async function authorize(): Promise<OAuth2Client> {
       scopes: SCOPES,
     });
     if (client?.credentials) {
-      await saveToken(client);
+      saveToken(client);
     }
     return client;
   } else {
