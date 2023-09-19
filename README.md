@@ -1,6 +1,6 @@
 # csv2gsheets: Create & update Google Sheets files using your local CSV
 
-[![code style: prettier](https://img.shields.io/badge/code_style-prettier-ff69b4.svg?style=flat-square)](https://github.com/prettier/prettier) [![Accessibility-alt-text-bot](https://github.com/ttsukagoshi/csv2gsheets/actions/workflows/a11y-alt-text-bot.yml/badge.svg)](https://github.com/ttsukagoshi/csv2gsheets/actions/workflows/a11y-alt-text-bot.yml) [![jest coverage](https://github.com/ttsukagoshi/csv2gsheets/actions/workflows/jest-coverage.yml/badge.svg)](https://github.com/ttsukagoshi/csv2gsheets/actions/workflows/jest-coverage.yml) [![Lint Code Base](https://github.com/ttsukagoshi/csv2gsheets/actions/workflows/linter.yml/badge.svg)](https://github.com/ttsukagoshi/csv2gsheets/actions/workflows/linter.yml)
+[![code style: prettier](https://img.shields.io/badge/code_style-prettier-ff69b4.svg?style=flat-square)](https://github.com/prettier/prettier) [![Accessibility-alt-text-bot](https://github.com/ttsukagoshi/csv2gsheets/actions/workflows/a11y-alt-text-bot.yml/badge.svg)](https://github.com/ttsukagoshi/csv2gsheets/actions/workflows/a11y-alt-text-bot.yml) [![Lint Code Base](https://github.com/ttsukagoshi/csv2gsheets/actions/workflows/linter.yml/badge.svg)](https://github.com/ttsukagoshi/csv2gsheets/actions/workflows/linter.yml)
 
 A Node.js CLI tool to convert local CSV files into Google Sheets files in a designated Google Drive folder. You can choose whether to update an existing Sheets file or create a new one.
 
