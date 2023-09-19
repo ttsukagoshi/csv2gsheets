@@ -4,12 +4,76 @@ import fs from 'fs';
 import path from 'path';
 import { drive_v3 } from 'googleapis';
 
-import { Config, DEFAULT_CONFIG, HOME_DIR } from '../src/constants';
-import * as utils from '../src/utils';
 import { C2gError } from '../src/c2g-error';
+import * as constants from '../src/constants';
+import inquirer from 'inquirer';
+import { MESSAGES } from '../src/messages';
+import * as utils from '../src/utils';
 
 jest.mock('fs');
 jest.mock('googleapis');
+jest.mock('inquirer');
+
+describe('createConfigFile', () => {
+  afterEach(() => {
+    jest.restoreAllMocks();
+  });
+
+  it('should create a config file with the default values', async () => {
+    // Arrange
+    const mockConfig = {
+      sourceDir: constants.DEFAULT_CONFIG.sourceDir,
+      targetDriveFolderId: constants.DEFAULT_CONFIG.targetDriveFolderId,
+      targetIsSharedDrive: constants.DEFAULT_CONFIG.targetDriveFolderId,
+      updateExistingGoogleSheets:
+        constants.DEFAULT_CONFIG.updateExistingGoogleSheets,
+      saveOriginalFilesToDrive:
+        constants.DEFAULT_CONFIG.saveOriginalFilesToDrive,
+    };
+    jest.spyOn(inquirer, 'prompt').mockResolvedValue(mockConfig);
+    // Act
+    await utils.createConfigFile();
+    // Assert
+    expect(fs.writeFileSync).toHaveBeenCalledWith(
+      path.join(process.cwd(), constants.CONFIG_FILE_NAME),
+      JSON.stringify(mockConfig, null, 2),
+    );
+  });
+
+  describe('validation functions for inquirer: validateSourceDir, validateTargetDriveFolderId', () => {
+    it('should return true if sourceDir is a valid path', () => {
+      // Arrange
+      jest.spyOn(fs, 'existsSync').mockReturnValue(true);
+      // Act & Assert
+      expect(utils.validateSourceDir('/some/path/')).toBe(true);
+    });
+
+    it('should return a predefined message if sourceDir is not a valid path', () => {
+      // Arrange
+      jest.spyOn(fs, 'existsSync').mockReturnValue(false);
+      // Act & Assert
+      expect(utils.validateSourceDir('/some/path/')).toBe(
+        MESSAGES.prompt.enterValidPath,
+      );
+    });
+
+    it('should return true if targetDriveFolderId is a string of length > 0', () => {
+      // Arrange
+      const targetDriveFolderId = '12345';
+      // Act & Assert
+      expect(utils.validateTargetDriveFolderId(targetDriveFolderId)).toBe(true);
+    });
+
+    it('should return a predefined message if targetDriveFolderId is a string of 0 length', () => {
+      // Arrange
+      const targetDriveFolderId = '';
+      // Act & Assert
+      expect(utils.validateTargetDriveFolderId(targetDriveFolderId)).toBe(
+        MESSAGES.prompt.enterValidId,
+      );
+    });
+  });
+});
 
 describe('readConfigFileSync', () => {
   const configFilePath = '/path/to/config.json';
@@ -46,57 +110,59 @@ describe('readConfigFileSync', () => {
 describe('validateConfig', () => {
   it('should return the config object if it is valid', () => {
     const config = {
-      sourceDir: HOME_DIR,
+      sourceDir: constants.HOME_DIR,
       targetDriveFolderId: '12345',
       targetIsSharedDrive: true,
       updateExistingGoogleSheets: true,
       saveOriginalFilesToDrive: false,
-    } as Partial<Config>;
+    } as Partial<constants.Config>;
     expect(utils.validateConfig(config)).toEqual(config);
   });
 
   it('should throw an error if sourceDir is not a string', () => {
-    const config = { sourceDir: 123 } as unknown as Partial<Config>;
+    const config = { sourceDir: 123 } as unknown as Partial<constants.Config>;
     expect(() => utils.validateConfig(config)).toThrow(TypeError);
   });
 
   it('should throw an error if sourceDir is not a valid path', () => {
     const config = {
       sourceDir: '/path/to/nonexistent/directory',
-    } as Partial<Config>;
+    } as Partial<constants.Config>;
     jest.spyOn(fs, 'existsSync').mockReturnValue(false);
     expect(() => utils.validateConfig(config)).toThrow(C2gError);
   });
 
   it('should throw an error if targetDriveFolderId is not a string', () => {
-    const config = { targetDriveFolderId: 123 } as unknown as Partial<Config>;
+    const config = {
+      targetDriveFolderId: 123,
+    } as unknown as Partial<constants.Config>;
     expect(() => utils.validateConfig(config)).toThrow(TypeError);
   });
 
   it('should throw an error if targetIsSharedDrive is not a boolean', () => {
     const config = {
       targetIsSharedDrive: 'true',
-    } as unknown as Partial<Config>;
+    } as unknown as Partial<constants.Config>;
     expect(() => utils.validateConfig(config)).toThrow(TypeError);
   });
 
   it('should throw an error if updateExistingGoogleSheets is not a boolean', () => {
     const config = {
       updateExistingGoogleSheets: 'true',
-    } as unknown as Partial<Config>;
+    } as unknown as Partial<constants.Config>;
     expect(() => utils.validateConfig(config)).toThrow(TypeError);
   });
 
   it('should throw an error if saveOriginalFilesToDrive is not a boolean', () => {
     const config = {
       saveOriginalFilesToDrive: 'false',
-    } as unknown as Partial<Config>;
+    } as unknown as Partial<constants.Config>;
     expect(() => utils.validateConfig(config)).toThrow(TypeError);
   });
 
   it('should add default values for missing config properties', () => {
-    const config = {} as Partial<Config>;
-    expect(utils.validateConfig(config)).toEqual(DEFAULT_CONFIG);
+    const config = {} as Partial<constants.Config>;
+    expect(utils.validateConfig(config)).toEqual(constants.DEFAULT_CONFIG);
   });
 });
 
@@ -145,7 +211,7 @@ describe('getExistingSheetsFiles', () => {
     jest.restoreAllMocks();
   });
 
-  const baseConfig: Config = {
+  const baseConfig: constants.Config = {
     sourceDir: '/path/to/source',
     targetDriveFolderId: '12345',
     targetIsSharedDrive: true,
@@ -303,7 +369,7 @@ describe('getCsvFolderId', () => {
     jest.restoreAllMocks();
   });
 
-  const baseConfig: Config = {
+  const baseConfig: constants.Config = {
     sourceDir: '/path/to/source',
     targetDriveFolderId: 'TargetDriveFolderId12345',
     targetIsSharedDrive: true,
