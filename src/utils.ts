@@ -10,6 +10,32 @@ import { C2gError } from './c2g-error';
 import { MESSAGES } from './messages';
 
 /**
+ * Check if the given source directory is valid.
+ * @param sourceDir The source directory to validate
+ * @returns `true` if the source directory is valid, or a string containing the error message if it isn't
+ */
+export function validateSourceDir(sourceDir: string): boolean | string {
+  if (fs.existsSync(sourceDir)) {
+    return true;
+  } else {
+    return MESSAGES.prompt.enterValidPath;
+  }
+}
+
+/**
+ * Check if the given target Google Drive folder ID is a string of length > 0.
+ * @param id The target Google Drive folder ID to validate
+ * @returns `true` if the target Google Drive folder ID is valid, or a string containing the error message if it isn't
+ */
+export function validateTargetDriveFolderId(id: string): boolean | string {
+  if (id.length) {
+    return true;
+  } else {
+    return MESSAGES.prompt.enterValidId;
+  }
+}
+
+/**
  * Creates a config file in the current directory based on user input
  */
 export async function createConfigFile(): Promise<void> {
@@ -20,26 +46,14 @@ export async function createConfigFile(): Promise<void> {
       type: 'input',
       message: MESSAGES.prompt.enterSourceDir,
       default: DEFAULT_CONFIG.sourceDir,
-      validate: (value: string) => {
-        if (fs.existsSync(value)) {
-          return true;
-        } else {
-          return MESSAGES.prompt.enterValidPath;
-        }
-      },
+      validate: validateSourceDir,
     },
     {
       name: 'targetDriveFolderId',
       type: 'input',
       message: MESSAGES.prompt.enterTargetDriveFolderId,
       default: DEFAULT_CONFIG.targetDriveFolderId,
-      validate: (value: string) => {
-        if (value.length) {
-          return true;
-        } else {
-          return MESSAGES.prompt.enterValidId;
-        }
-      },
+      validate: validateTargetDriveFolderId,
     },
     {
       name: 'targetIsSharedDrive',
