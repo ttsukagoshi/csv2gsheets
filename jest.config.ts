@@ -33,5 +33,8 @@ export default {
       },
     ],
   },
+  transformIgnorePatterns: [
+    '/node_modules/(?!chalk|escape-string-regexp|figures|inquirer|is-unicode-supported/)',
+  ],
   verbose: true,
 };
