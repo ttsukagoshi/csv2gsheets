@@ -1,12 +1,16 @@
 # Node.js
 node_modules/
+
+# TypeScript
 build/
 
 # Jest
 coverage/
 
 # Google API Credentials
+# To prevent accidental commits of credentials:
 .credentials.json
+credentials.json
 .token.json
 .c2grc.json
 c2g.creds.json

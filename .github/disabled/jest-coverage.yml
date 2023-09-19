@@ -9,3 +9,5 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: ArtiomTr/jest-coverage-report-action@v2
+        env:
+          NODE_OPTIONS: '--max_old_space_size=4096'
