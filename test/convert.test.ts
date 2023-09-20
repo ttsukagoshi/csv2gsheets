@@ -287,6 +287,7 @@ describe('convert', () => {
       requestBody: {
         name: 'file2',
         mimeType: 'application/vnd.google-apps.spreadsheet',
+        parents: [mockConfigWithUpdateExistingGoogleSheets.targetDriveFolderId],
       },
       media: {
         mimeType: 'text/csv',

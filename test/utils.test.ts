@@ -377,7 +377,7 @@ describe('getCsvFolderId', () => {
     saveOriginalFilesToDrive: true,
   };
 
-  it('should return the ID of the csv folder if config.saveOriginalFilesToDrive is false and it exists', async () => {
+  it('should return the ID of the csv folder if config.saveOriginalFilesToDrive is true and it exists', async () => {
     const mockDrive = {
       files: {
         list: jest.fn().mockImplementation(() => {
@@ -483,7 +483,6 @@ describe('getCsvFolderId', () => {
       requestBody: {
         name: 'csv',
         mimeType: 'application/vnd.google-apps.folder',
-        parents: [mockConfig.targetDriveFolderId],
       },
     });
   });
