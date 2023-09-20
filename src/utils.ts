@@ -183,6 +183,7 @@ export async function getExistingSheetsFiles(
   if (config.updateExistingGoogleSheets) {
     const params: drive_v3.Params$Resource$Files$List = {
       supportsAllDrives: config.targetIsSharedDrive,
+      includeItemsFromAllDrives: config.targetIsSharedDrive,
       q: `'${config.targetDriveFolderId}' in parents and mimeType = 'application/vnd.google-apps.spreadsheet' and trashed = false`,
       fields: 'nextPageToken, files(id, name)',
     };
@@ -271,6 +272,7 @@ export async function getCsvFolderId(
     // First, check if the "csv" folder exists
     const csvFolderList = await drive.files.list({
       supportsAllDrives: config.targetIsSharedDrive,
+      includeItemsFromAllDrives: config.targetIsSharedDrive,
       q: `name = 'csv' and '${config.targetDriveFolderId}' in parents and mimeType = 'application/vnd.google-apps.folder' and trashed = false`,
       fields: 'files(id, name)',
     });
@@ -285,7 +287,7 @@ export async function getCsvFolderId(
         name: 'csv',
         mimeType: 'application/vnd.google-apps.folder',
       };
-      if (isRoot(config.targetDriveFolderId)) {
+      if (!isRoot(config.targetDriveFolderId)) {
         newCsvFolderRequestBody.parents = [config.targetDriveFolderId];
       }
       const newCsvFolder = await drive.files.create({
