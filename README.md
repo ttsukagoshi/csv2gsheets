@@ -86,7 +86,6 @@ The basic steps are described below, but you can also refer to the [Google Cloud
 
    <img width="791" alt="Screenshot of the Enable API page" src="https://github.com/ttsukagoshi/csv2gsheets/assets/55706659/393e67e3-e119-4db4-a5ca-dd056c358d9c">
 
-
 3. Create the OAuth consent screen  
    Go to the [OAuth consent screen](https://console.cloud.google.com/apis/credentials/consent) page and create a new consent screen. You can choose "Internal" or "External," depending on whether you want to use the tool only for yourself or share it with others. If you select "External," you must add test users. Enter your Google account and other authorized test users' addresses in the "Test users" section.
 
@@ -98,7 +97,6 @@ The basic steps are described below, but you can also refer to the [Google Cloud
 
    <img width="818" alt="Screenshot of the steps to create a new OAuth client ID." src="https://github.com/ttsukagoshi/csv2gsheets/assets/55706659/e30f77e6-2159-4f8d-b0dc-9416c8284678">
    <img width="821" alt="Screenshot of the popup that the user will see when they have completed setting their OAuth client ID. The DOWNLOAD JSON button will be available." src="https://github.com/ttsukagoshi/csv2gsheets/assets/55706659/bf3da582-82ee-4e35-87a5-a4c956fea60e">
-
 
 The credentials file saved in your home directory would be something like this:
 
