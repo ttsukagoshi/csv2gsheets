@@ -79,22 +79,26 @@ The basic steps are described below, but you can also refer to the [Google Cloud
 1. Create a Google Cloud project  
    Go to the [Google Cloud Console](https://console.cloud.google.com/) and create a new project. You can also click [this link](https://console.cloud.google.com/projectcreate) to go directly to the project creation page.
 
-   <img width="767" alt="Screenshot of the page to create a new Google Cloud project" src="https://github.com/ttsukagoshi/csv2gsheets/assets/55706659/d70594c9-8319-4145-b527-49bbf7d01e3e">
+   <img width="722" alt="Screenshot of the Create New Project page" src="https://github.com/ttsukagoshi/csv2gsheets/assets/55706659/f1542312-02d2-48b2-acd5-0e7662027392">
 
 2. Enable the Drive API  
    Go to the [API Library](https://console.cloud.google.com/apis/library) page and enable the Drive API. You can also click [this link](https://console.cloud.google.com/flows/enableapi?apiid=drive.googleapis.com) to go directly to the "Enable Drive API" page.
 
-  <img width="943" alt="Screenshot of the Enable API page" src="https://github.com/ttsukagoshi/csv2gsheets/assets/55706659/10a2b973-9dc9-4e54-9631-8b21cc86c3b7">
+   <img width="791" alt="Screenshot of the Enable API page" src="https://github.com/ttsukagoshi/csv2gsheets/assets/55706659/393e67e3-e119-4db4-a5ca-dd056c358d9c">
+
 
 3. Create the OAuth consent screen  
    Go to the [OAuth consent screen](https://console.cloud.google.com/apis/credentials/consent) page and create a new consent screen. You can choose "Internal" or "External," depending on whether you want to use the tool only for yourself or share it with others. If you select "External," you must add test users. Enter your Google account and other authorized test users' addresses in the "Test users" section.
 
-  <img width="943" alt="Screenshot of the OAuth consent screen where the user is asked to enter test accounts" src="https://github.com/ttsukagoshi/csv2gsheets/assets/55706659/186db13b-e8f2-46b3-be5b-0388468d3bba">
+   <img width="755" alt="Screenshot of the Create OAuth Consent Screen page" src="https://github.com/ttsukagoshi/csv2gsheets/assets/55706659/cf8db5f9-f51a-41d9-afd8-aaadc4898af5">
+   <img width="1166" alt="Screenshot of the OAuth consent screen where the user is asked to enter test accounts" src="https://github.com/ttsukagoshi/csv2gsheets/assets/55706659/55d57ef4-2434-46b5-821d-1dd786ad3fb4">
 
 4. Create credentials  
    Go to the [Credentials](https://console.cloud.google.com/apis/credentials) page and create a new OAuth client ID. Choose "Desktop app" as the application type. You can choose any name you like for the client ID. Save the created credentials as a JSON file named `c2g.creds.json` and save them in your home directory.
 
-   <img width="954" alt="Screenshot of the popup that the user will see when they have completed setting their OAuth client ID. The DOWNLOAD JSON button will be available." src="https://github.com/ttsukagoshi/csv2gsheets/assets/55706659/14cd38ec-2308-469a-816a-166333348e5a">
+   <img width="818" alt="Screenshot of the steps to create a new OAuth client ID." src="https://github.com/ttsukagoshi/csv2gsheets/assets/55706659/e30f77e6-2159-4f8d-b0dc-9416c8284678">
+   <img width="821" alt="Screenshot of the popup that the user will see when they have completed setting their OAuth client ID. The DOWNLOAD JSON button will be available." src="https://github.com/ttsukagoshi/csv2gsheets/assets/55706659/bf3da582-82ee-4e35-87a5-a4c956fea60e">
+
 
 The credentials file saved in your home directory would be something like this:
 
