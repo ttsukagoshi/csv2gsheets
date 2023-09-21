@@ -93,7 +93,7 @@ export default async function convert(options) {
                     name: csvFileObj.name,
                     mimeType: 'application/vnd.google-apps.spreadsheet',
                 };
-                if (utils.isRoot(config.targetDriveFolderId)) {
+                if (!utils.isRoot(config.targetDriveFolderId)) {
                     requestBody.parents = [config.targetDriveFolderId];
                 }
                 await drive.files.create({
