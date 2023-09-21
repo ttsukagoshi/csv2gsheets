@@ -52,7 +52,7 @@ plugins:
 
 ignorePatterns:
   - 'node_modules/'
-  - 'build/'
+  - '**/build/**/*.js'
   - 'coverage/'
 #########
 # Rules #
