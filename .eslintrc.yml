@@ -51,9 +51,9 @@ plugins:
   - 'jest'
 
 ignorePatterns:
-  - '/node_modules/'
-  - '/build/'
-  - '/coverage/'
+  - 'node_modules/'
+  - 'build/'
+  - 'coverage/'
 #########
 # Rules #
 #########
