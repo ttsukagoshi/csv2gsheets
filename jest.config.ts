@@ -29,7 +29,7 @@ export default {
   extensionsToTreatAsEsm: ['.ts'],
   moduleFileExtensions: ['ts', 'js', 'mjs', 'json'],
   testEnvironment: 'node',
-  testMatch: ['**/test/**/*.test.ts'], // The glob patterns Jest uses to detect test files
+  testMatch: ['./test/**/*.test.ts'], // The glob patterns Jest uses to detect test files
   transform: {
     '^.+\\.m?[tj]sx?$': [
       'ts-jest',
