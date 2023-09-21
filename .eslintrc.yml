@@ -49,6 +49,11 @@ overrides:
 plugins:
   - '@typescript-eslint'
   - 'jest'
+
+ignorePatterns:
+  - '/node_modules/'
+  - '/build/'
+  - '/coverage/'
 #########
 # Rules #
 #########
