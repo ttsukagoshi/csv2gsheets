@@ -15,6 +15,9 @@ credentials.json
 .c2grc.json
 c2g.creds.json
 
+# csv2gsheets
+c2g.config.json
+
 # Faker
 faker/data/
 
