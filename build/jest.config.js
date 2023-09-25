@@ -28,7 +28,7 @@ export default {
     extensionsToTreatAsEsm: ['.ts'],
     moduleFileExtensions: ['ts', 'js', 'mjs', 'json'],
     testEnvironment: 'node',
-    testMatch: ['**/test/**/*.test.ts'],
+    testMatch: ['./test/**/*.test.ts'],
     transform: {
         '^.+\\.m?[tj]sx?$': [
             'ts-jest',
