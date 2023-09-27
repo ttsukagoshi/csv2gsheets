@@ -3,6 +3,8 @@ import * as postbuild from '../postbuild/postbuild.mjs';
 import fs from 'fs';
 import path from 'path';
 
+jest.mock('fs');
+
 describe('findJsFiles', () => {
   const targetPath = path.join('./test', 'build', 'src');
   afterEach(() => {

@@ -2,7 +2,7 @@
 node_modules/
 
 # TypeScript
-# build/
+build/
 
 # Jest
 coverage/
