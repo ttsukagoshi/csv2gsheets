@@ -18,18 +18,20 @@ export const TARGET_REGEXP_STR = "^(import (\\S*, )?({[^}]*}|\\S*( as \\S*)?) fr
  */
 export function findJsFiles(dir, jsFileList = []) {
   const files = fs.readdirSync(dir, { withFileTypes: true });
-  files.forEach((fileDirent) => {
-    const filePath = path.join(dir, fileDirent.name);
-    const extName = path.extname(filePath);
-    if (fileDirent.isDirectory()) {
-      findJsFiles(filePath, jsFileList);
-    } else if (extName === '.js') {
-      jsFileList.push({
-        filePath: filePath,
-        fileName: fileDirent.name.replace(extName, ''),
-      });
-    }
-  });
+  if (files) {
+    files.forEach((fileDirent) => {
+      const filePath = path.join(dir, fileDirent.name);
+      const extName = path.extname(filePath);
+      if (fileDirent.isDirectory()) {
+        findJsFiles(filePath, jsFileList);
+      } else if (extName === '.js') {
+        jsFileList.push({
+          filePath: filePath,
+          fileName: fileDirent.name.replace(extName, ''),
+        });
+      }
+    });
+  }
   // eslint-disable-next-line @typescript-eslint/no-unsafe-return
   return jsFileList;
 }
@@ -43,15 +45,17 @@ export function findJsFiles(dir, jsFileList = []) {
  */
 export function createRegexpFromFileNames(fileObjArr) {
   const regexpArr = [];
-  fileObjArr.forEach((fileObj) => {
-    regexpArr.push(
-      new RegExp(
-        // eslint-disable-next-line  @typescript-eslint/no-unsafe-member-access,@typescript-eslint/no-unsafe-argument
-        TARGET_REGEXP_STR.replace('{{fileName}}', fileObj.fileName),
-        'gm',
-      ),
-    );
-  });
+  if (fileObjArr) {
+    fileObjArr.forEach((fileObj) => {
+      regexpArr.push(
+        new RegExp(
+          // eslint-disable-next-line  @typescript-eslint/no-unsafe-member-access,@typescript-eslint/no-unsafe-argument
+          TARGET_REGEXP_STR.replace('{{fileName}}', fileObj.fileName),
+          'gm',
+        ),
+      );
+    });
+  }
   // eslint-disable-next-line @typescript-eslint/no-unsafe-return
   return regexpArr;
 }
