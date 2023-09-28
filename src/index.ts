@@ -3,6 +3,7 @@
 
 import { program } from 'commander';
 import loudRejection from 'loud-rejection';
+import updateNotifier from 'update-notifier';
 
 // Local imports
 import { C2gError } from './c2g-error';
@@ -16,6 +17,13 @@ import logout from './commands/logout';
 
 // Make unhandled promise rejections fail loudly instead of the default silent fail
 loudRejection();
+
+// Check for updates
+const updates = updateNotifier({
+  pkg: PACKAGE_JSON,
+  updateCheckInterval: 0, // Notify user on every run if there are any updates
+  // updateCheckInterval: 1000 * 60 * 60 * 24, // 1 day = default
+});
 
 // Set global CLI configurations
 program.storeOptionsAsProperties(false);
@@ -91,5 +99,8 @@ program
       process.exitCode = 1;
       console.error('An unknown error occurred.', error);
     }
+  } finally {
+    // Notify user of updates, if there are any
+    updates.notify();
   }
 })();
