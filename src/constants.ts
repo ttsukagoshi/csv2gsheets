@@ -21,7 +21,7 @@ export interface Config {
 
 // Default Config
 export const DEFAULT_CONFIG: Config = {
-  sourceDir: HOME_DIR,
+  sourceDir: process.cwd(),
   targetDriveFolderId: 'root',
   targetIsSharedDrive: false,
   updateExistingGoogleSheets: false,
