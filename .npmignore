@@ -1,5 +1,21 @@
+# Node.js modules
+node_modules
+
+# TypeScript code before transpilation
 src
+
+# Jest
 test
 coverage
-node_modules
+
+# Google API Credentials
+# to prevent accidental commits of credentials
+.c2grc.json
+c2g.creds.json
+# Other possible names for credentials
+.credentials.json
+credentials.json
+.token.json
+
+# Other files and folders that begin with a dot
 .*
