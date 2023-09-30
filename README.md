@@ -209,7 +209,7 @@ The configuration file `c2g.config.json` is a JSON file that specifies the follo
 
 | Key                          | Type      | Description                                                                                                                      | Default Value              |
 | ---------------------------- | --------- | -------------------------------------------------------------------------------------------------------------------------------- | -------------------------- |
-| `sourceDir`                  | `string`  | Path to the local CSV folder.                                                                                                    | The user's home directory. |
+| `sourceDir`                  | `string`  | Path to the local CSV folder.                                                                                                    | The user's current working directory. |
 | `targetDriveFolderId`        | `string`  | ID of the target Google Drive folder. The special value `root` (case insensitive) can be used to designate the root of My Drive. | `root`                     |
 | `targetIsSharedDrive`        | `boolean` | Whether the target Google Drive folder is a shared drive.                                                                        | `false`                    |
 | `updateExistingGoogleSheets` | `boolean` | Whether to update existing Sheets files with the same file name or create new ones.                                              | `false`                    |
