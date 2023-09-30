@@ -87,9 +87,12 @@ The basic steps are described below, but you can also refer to the [Google Cloud
    <img width="791" alt="Screenshot of the Enable API page" src="https://github.com/ttsukagoshi/csv2gsheets/assets/55706659/393e67e3-e119-4db4-a5ca-dd056c358d9c">
 
 3. Create the OAuth consent screen  
-   Go to the [OAuth consent screen](https://console.cloud.google.com/apis/credentials/consent) page and create a new consent screen. You can choose "Internal" or "External," depending on whether you want to use the tool only for yourself or share it with others. If you select "External," you must add test users. Enter your Google account and other authorized test users' addresses in the "Test users" section.
+   Go to the [OAuth consent screen](https://console.cloud.google.com/apis/credentials/consent) page and create a new consent screen.
 
    <img width="755" alt="Screenshot of the Create OAuth Consent Screen page" src="https://github.com/ttsukagoshi/csv2gsheets/assets/55706659/cf8db5f9-f51a-41d9-afd8-aaadc4898af5">
+
+   You can choose "Internal" or "External" for User Type depending on whether you want to use the tool only for yourself or share it with others. If you select "External," you must add yourself to the list of test users (you won't need to have it verified by Google). Enter your Google account in the "Test users" section. The "Internal" option will not be available if you are using a free Gmail account.
+   
    <img width="1166" alt="Screenshot of the OAuth consent screen where the user is asked to enter test accounts" src="https://github.com/ttsukagoshi/csv2gsheets/assets/55706659/55d57ef4-2434-46b5-821d-1dd786ad3fb4">
 
 4. Create credentials  
