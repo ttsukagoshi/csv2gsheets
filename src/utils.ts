@@ -157,7 +157,7 @@ export function validateConfig(configObj: Partial<Config>): Config {
 }
 
 /**
- * Check if the given target Google Drive folder ID is "root" (case-insensitive).
+ * Check if the value of the given target Google Drive folder ID is "root" (case-insensitive).
  * If it is, return true. Here, "root" is a special value that refers to the root folder
  * in My Drive.
  * @param targetDriveFolderId The target Google Drive folder ID
