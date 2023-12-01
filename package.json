@@ -41,7 +41,7 @@
   "homepage": "https://github.com/ttsukagoshi/csv2gsheets#readme",
   "devDependencies": {
     "@faker-js/faker": "^8.0.2",
-    "@types/inquirer": "^9.0.3",
+    "@types/inquirer": "^9.0.7",
     "@types/jest": "^29.5.7",
     "@types/update-notifier": "^6.0.5",
     "@typescript-eslint/eslint-plugin": "^6.9.1",
@@ -60,7 +60,7 @@
     "@google-cloud/local-auth": "^3.0.0",
     "commander": "^11.0.0",
     "googleapis": "^128.0.0",
-    "inquirer": "^9.2.10",
+    "inquirer": "^9.2.12",
     "loud-rejection": "^2.2.0",
     "read-pkg-up": "^10.1.0",
     "update-notifier": "^7.0.0"
