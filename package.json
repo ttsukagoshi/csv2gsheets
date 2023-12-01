@@ -59,7 +59,7 @@
   "dependencies": {
     "@google-cloud/local-auth": "^3.0.0",
     "commander": "^11.0.0",
-    "googleapis": "^128.0.0",
+    "googleapis": "^129.0.0",
     "inquirer": "^9.2.10",
     "loud-rejection": "^2.2.0",
     "read-pkg-up": "^10.1.0",
