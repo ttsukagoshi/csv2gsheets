@@ -2,7 +2,7 @@
 
 import { dirname } from 'path';
 import { fileURLToPath } from 'url';
-import { readPackageUpSync } from 'read-pkg-up';
+import { readPackageUpSync } from 'read-package-up';
 
 // Package Info
 const __dirname: string = dirname(fileURLToPath(import.meta.url));
