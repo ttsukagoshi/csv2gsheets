@@ -4,7 +4,7 @@
   "description": "CLI tool to convert local CSV files into Google Sheets files in a designated Google Drive folder.",
   "type": "module",
   "engines": {
-    "node": ">=18.18.0 | >=20.9.0"
+    "node": ">=18.18.0 || >=20.9.0"
   },
   "exports": "./build/src/index.js",
   "main": "build/src/index.js",
