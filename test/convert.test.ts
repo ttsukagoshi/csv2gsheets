@@ -9,7 +9,7 @@ import { OAuth2Client } from 'google-auth-library';
 
 import * as auth from '../src/auth';
 import { C2gError } from '../src/c2g-error';
-import convert from '../src/commands/convert';
+import convert, { config2message } from '../src/commands/convert';
 import { Config } from '../src/constants';
 import { MESSAGES } from '../src/messages';
 import * as utils from '../src/utils';
@@ -17,6 +17,24 @@ import * as utils from '../src/utils';
 jest.mock('fs');
 jest.mock('googleapis');
 jest.mock('open');
+
+describe('config2message', () => {
+  it('should convert the config object to a human-readable message string', () => {
+    const config: Config = {
+      sourceDir: 'path/to/csv',
+      targetDriveFolderId: 'TargetDriveFolderId12345',
+      targetIsSharedDrive: true,
+      updateExistingGoogleSheets: false,
+      saveOriginalFilesToDrive: false,
+    };
+    const expectedMessage = `Source directory of the CSV files: ${config.sourceDir}
+  Target Google Drive Folder ID: ${config.targetDriveFolderId}
+  Target is in a Shared Drive: ${config.targetIsSharedDrive}
+  Update existing Google Sheets files with the same name: ${config.updateExistingGoogleSheets}
+  Save original CSV files to the Drive folder as well: ${config.saveOriginalFilesToDrive}`;
+    expect(config2message(config)).toBe(expectedMessage);
+  });
+});
 
 describe('convert', () => {
   afterEach(() => {
@@ -81,9 +99,7 @@ describe('convert', () => {
       `${
         MESSAGES.log.runningOnDryRun
       }\n\n${MESSAGES.log.convertingCsvWithFollowingSettings(
-        Object.keys(mockConfig)
-          .map((key) => `${key}: ${mockConfig[key as keyof Config]}`)
-          .join('\n  '),
+        config2message(mockConfig),
       )}`,
     );
     expect(console.info).toHaveBeenNthCalledWith(

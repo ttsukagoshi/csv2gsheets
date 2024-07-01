@@ -7,7 +7,12 @@ import path from 'path';
 
 import { authorize, isAuthorized } from '../auth';
 import { C2gError } from '../c2g-error';
-import { Config, CONFIG_FILE_NAME } from '../constants';
+import {
+  Config,
+  ConfigKeys,
+  CONFIG_FILE_NAME,
+  CONFIG_KEYS,
+} from '../constants';
 import { MESSAGES } from '../messages';
 import * as utils from '../utils';
 
@@ -22,6 +27,21 @@ export interface CsvFileObj {
   basename: string;
   path: string;
   existingSheetsFileId: string | null;
+}
+
+/**
+ * Convert the contents of the config object
+ * to a human-readable message string.
+ * @param config The config object
+ * @returns The human-readable message string
+ */
+export function config2message(config: Config): string {
+  return Object.keys(config)
+    .map(
+      (key) =>
+        `${CONFIG_KEYS[key as keyof ConfigKeys]}: ${config[key as keyof Config]}`,
+    )
+    .join('\n  ');
 }
 
 /**
@@ -44,11 +64,7 @@ export default async function convert(
 
   // Show message on the console
   let convertingCsvWithFollowingSettings =
-    MESSAGES.log.convertingCsvWithFollowingSettings(
-      Object.keys(config)
-        .map((key) => `${key}: ${config[key as keyof Config]}`)
-        .join('\n  '),
-    );
+    MESSAGES.log.convertingCsvWithFollowingSettings(config2message(config));
   convertingCsvWithFollowingSettings = options.dryRun
     ? `${MESSAGES.log.runningOnDryRun}\n\n${convertingCsvWithFollowingSettings}`
     : convertingCsvWithFollowingSettings;

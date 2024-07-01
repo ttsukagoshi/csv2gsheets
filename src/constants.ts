@@ -18,6 +18,13 @@ export interface Config {
   updateExistingGoogleSheets: boolean;
   saveOriginalFilesToDrive: boolean;
 }
+export interface ConfigKeys {
+  sourceDir: string;
+  targetDriveFolderId: string;
+  targetIsSharedDrive: string;
+  updateExistingGoogleSheets: string;
+  saveOriginalFilesToDrive: string;
+}
 
 // Default Config
 export const DEFAULT_CONFIG: Config = {
@@ -26,4 +33,15 @@ export const DEFAULT_CONFIG: Config = {
   targetIsSharedDrive: false,
   updateExistingGoogleSheets: false,
   saveOriginalFilesToDrive: false,
+};
+
+// Human-readable meaning of the Config keys
+export const CONFIG_KEYS: ConfigKeys = {
+  sourceDir: 'Source directory of the CSV files',
+  targetDriveFolderId: 'Target Google Drive Folder ID',
+  targetIsSharedDrive: 'Target is in a Shared Drive',
+  updateExistingGoogleSheets:
+    'Update existing Google Sheets files with the same name',
+  saveOriginalFilesToDrive:
+    'Save original CSV files to the Drive folder as well',
 };
