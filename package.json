@@ -63,6 +63,6 @@
     "inquirer": "^9.3.2",
     "loud-rejection": "^2.2.0",
     "read-package-up": "^11.0.0",
-    "update-notifier": "^7.0.0"
+    "update-notifier": "^7.2.0"
   }
 }
