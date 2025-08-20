@@ -48,7 +48,7 @@ jobs:
       # Run Linter against code base #
       ################################
       - name: Lint Code Base
-        uses: super-linter/super-linter/slim@v7 # See https://github.com/super-linter/super-linter#images
+        uses: super-linter/super-linter/slim@v8 # See https://github.com/super-linter/super-linter#images
         env:
           VALIDATE_ALL_CODEBASE: true
           VALIDATE_JAVASCRIPT_ES: true
