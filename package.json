@@ -40,7 +40,7 @@
   },
   "homepage": "https://github.com/ttsukagoshi/csv2gsheets#readme",
   "devDependencies": {
-    "@faker-js/faker": "^9.9.0",
+    "@faker-js/faker": "^10.0.0",
     "@types/inquirer": "^9.0.7",
     "@types/jest": "^30.0.0",
     "@types/update-notifier": "^6.0.8",
